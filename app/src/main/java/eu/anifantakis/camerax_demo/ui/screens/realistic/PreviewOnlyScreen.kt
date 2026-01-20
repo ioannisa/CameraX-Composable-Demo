@@ -1,4 +1,4 @@
-package eu.anifantakis.camerax_demo.ui.screens
+package eu.anifantakis.camerax_demo.ui.screens.realistic
 
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.CameraSelector
@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import eu.anifantakis.camerax_demo.ui.CameraViewModel
 import org.koin.androidx.compose.koinViewModel
 
 /**

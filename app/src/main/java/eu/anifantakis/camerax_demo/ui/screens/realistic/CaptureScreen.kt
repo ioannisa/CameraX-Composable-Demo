@@ -1,4 +1,4 @@
-package eu.anifantakis.camerax_demo.ui.screens
+package eu.anifantakis.camerax_demo.ui.screens.realistic
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import eu.anifantakis.camerax_demo.ui.CameraViewModel
 import eu.anifantakis.camerax_demo.ui.components.Permission
 import eu.anifantakis.camerax_demo.ui.components.PermissionGate
 import org.koin.androidx.compose.koinViewModel

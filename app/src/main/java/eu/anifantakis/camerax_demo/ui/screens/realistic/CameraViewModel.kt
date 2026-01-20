@@ -1,4 +1,4 @@
-package eu.anifantakis.camerax_demo.ui
+package eu.anifantakis.camerax_demo.ui.screens.realistic
 
 import android.Manifest
 import android.app.Application

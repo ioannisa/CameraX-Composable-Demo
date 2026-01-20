@@ -1,4 +1,4 @@
-package eu.anifantakis.camerax_demo.ui.screens
+package eu.anifantakis.camerax_demo.ui.screens.realistic
 
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.SurfaceRequest
@@ -15,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import eu.anifantakis.camerax_demo.ui.CameraViewModel
 import org.koin.androidx.compose.koinViewModel
 
 /**
