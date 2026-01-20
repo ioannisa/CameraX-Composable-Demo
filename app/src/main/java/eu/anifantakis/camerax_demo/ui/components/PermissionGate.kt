@@ -9,6 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 /**
  * Small, declarative permission helper for Compose.
@@ -38,7 +40,7 @@ fun PermissionGate(
     contentGranted: @Composable () -> Unit
 ) {
     PermissionGate(
-        permissions = listOf(permission),
+        permissions = persistentListOf(permission),
         modifier = modifier,
         requestOnLaunch = requestOnLaunch,
         contentNonGranted = contentNonGranted,
@@ -52,7 +54,7 @@ fun PermissionGate(
 @SuppressLint("MissingPermission")
 @Composable
 fun PermissionGate(
-    permissions: List<Permission>,
+    permissions: ImmutableList<Permission>,
     modifier: Modifier = Modifier,
     requestOnLaunch: Boolean = true,
     contentNonGranted: @Composable ((missing: List<String>, humanReadable: String, requestPermissions: (List<String>) -> Unit) -> Unit)? = null,
