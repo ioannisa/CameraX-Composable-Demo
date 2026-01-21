@@ -55,6 +55,7 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 | **Pinch-to-Zoom** | Standard Compose gestures with `detectTransformGestures` |
 | **Photo & Video** | Binding `Preview` + `ImageCapture` + `VideoCapture` together |
 | **Adaptive Layouts** | `WindowSizeClass` for foldables and tablets |
+| **Compose Effects** | Blur, alpha, rotation, grayscale — impossible with PreviewView! |
 | **Permissions** | Declarative `PermissionGate` inside the Compose tree |
 | **ViewModel Architecture** | Production-ready patterns with proper state management |
 
@@ -68,14 +69,16 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 │   ├── LegacyCameraSwitching    → DisposableEffect coordination
 │   ├── LegacyTapToFocus         → View-based touch handling
 │   ├── LegacyPhotoVideoCapture  → View island in Compose
-│   └── LegacyAdaptivePreview    → SurfaceView animation issues
+│   ├── LegacyAdaptivePreview    → SurfaceView animation issues
+│   └── LegacyEffectsPreview     → Compose effects DON'T work!
 │
 ├── simplistic/              # THE NEW WAY: Pure Compose
 │   ├── BasicCameraPreview       → CameraXViewfinder + StateFlow
 │   ├── CameraSwitchingPreview   → LaunchedEffect(selector)
 │   ├── TapToFocusPreview        → MutableCoordinateTransformer
 │   ├── PhotoVideoCapturePreview → Multi-use-case binding
-│   └── AdaptivePreview          → Smooth Compose animations
+│   ├── AdaptivePreview          → Smooth Compose animations
+│   └── EffectsPreview           → Compose effects WORK!
 │
 ├── realistic/               # Production-ready with ViewModel
 │   ├── CameraViewModel          → State management
@@ -213,6 +216,47 @@ cd camerax-compose-demo
 > *"For years, camera development was the place where modern Android stopped."*
 >
 > **That compromise is over.**
+
+---
+
+## The Rendering Black Box Problem
+
+PreviewView is a **View** — a foreign object in your Compose tree. It doesn't participate in Compose's graphics layer:
+
+| Effect | PreviewView | CameraXViewfinder EMBEDDED |
+|--------|-------------|---------------------------|
+| Circle Clip | ✓ | ✓ |
+| Blur | ✗ | ✓ |
+| Alpha 50% | ✗ | ✓ |
+| Rotation | ✗ | ✓ |
+| Grayscale | ✗ | ✓ |
+
+```kotlin
+// With PreviewView - these DON'T work:
+AndroidView(
+    factory = { PreviewView(it) },
+    modifier = Modifier
+        .blur(20.dp)        // ✗ Ignored
+        .alpha(0.5f)        // ✗ Ignored
+        .graphicsLayer {
+            rotationZ = 15f  // ✗ Ignored
+        }
+)
+
+// With CameraXViewfinder EMBEDDED - they ALL work:
+CameraXViewfinder(
+    surfaceRequest = request,
+    implementationMode = ImplementationMode.EMBEDDED,
+    modifier = Modifier
+        .blur(20.dp)        // ✓ Works!
+        .alpha(0.5f)        // ✓ Works!
+        .graphicsLayer {
+            rotationZ = 15f  // ✓ Works!
+        }
+)
+```
+
+**CameraXViewfinder with EMBEDDED mode is a true composable.** It plays by Compose rules.
 
 ---
 

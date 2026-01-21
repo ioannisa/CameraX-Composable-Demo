@@ -81,6 +81,13 @@ fun SimplisticMenuScreen(nav: NavController) {
             ) {
                 Text("Foldables & Adaptive UIs")
             }
+
+            Button(
+                onClick = { nav.navigate(SimplisticRoute.Effects.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Compose Effects (All Work!)")
+            }
         }
     }
 }

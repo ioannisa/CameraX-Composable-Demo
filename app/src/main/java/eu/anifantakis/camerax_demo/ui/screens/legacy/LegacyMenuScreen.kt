@@ -85,6 +85,13 @@ fun LegacyMenuScreen(nav: NavController) {
             ) {
                 Text("Foldables & Adaptive UIs")
             }
+
+            Button(
+                onClick = { nav.navigate(LegacyRoute.Effects.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Compose Effects (Most Fail!)")
+            }
         }
     }
 }
