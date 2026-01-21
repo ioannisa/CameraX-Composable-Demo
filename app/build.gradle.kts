@@ -71,6 +71,8 @@ dependencies {
     implementation(libs.androidx.camera.video)
     // The new Compose-native viewfinder
     implementation(libs.androidx.camera.compose)
+    // Legacy PreviewView (for comparison examples)
+    implementation(libs.androidx.camera.view)
 
     // KOIN (Kotlin Inject)
     implementation(libs.koin.android)

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -20,6 +21,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyAdaptivePreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyBasicPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyCameraSwitchingPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyMenuScreen
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyPhotoVideoCapturePreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyTapToFocusPreview
 import eu.anifantakis.camerax_demo.ui.screens.realistic.AdaptiveScreen
 import eu.anifantakis.camerax_demo.ui.screens.realistic.CaptureScreen
 import eu.anifantakis.camerax_demo.ui.screens.realistic.InteractivePreviewScreen
@@ -51,8 +58,19 @@ sealed class RealisticRoute(val path: String) {
     data object Adaptive : RealisticRoute("realistic_adaptive")
 }
 
+// Routes for Legacy examples (AndroidView + PreviewView)
+sealed class LegacyRoute(val path: String) {
+    data object Menu : LegacyRoute("legacy_menu")
+    data object BasicPreview : LegacyRoute("legacy_basic_preview")
+    data object CameraSwitching : LegacyRoute("legacy_camera_switching")
+    data object TapToFocus : LegacyRoute("legacy_tap_to_focus")
+    data object PhotoVideoCapture : LegacyRoute("legacy_photo_video_capture")
+    data object Adaptive : LegacyRoute("legacy_adaptive")
+}
+
 // Bottom navigation tabs
 enum class BottomTab(val label: String, val icon: ImageVector) {
+    Legacy("Legacy", Icons.Default.History),
     Simplistic("Simplistic", Icons.Default.Code),
     Realistic("Realistic", Icons.Default.Settings)
 }
@@ -79,9 +97,27 @@ fun CameraNavHost(
         }
     ) { innerPadding ->
         when (selectedTab) {
-            0 -> SimplisticNavHost(Modifier.padding(innerPadding))
-            1 -> RealisticNavHost(Modifier.padding(innerPadding))
+            0 -> LegacyNavHost(Modifier.padding(innerPadding))
+            1 -> SimplisticNavHost(Modifier.padding(innerPadding))
+            2 -> RealisticNavHost(Modifier.padding(innerPadding))
         }
+    }
+}
+
+@Composable
+private fun LegacyNavHost(modifier: Modifier = Modifier) {
+    val nav = rememberNavController()
+    NavHost(
+        navController = nav,
+        startDestination = LegacyRoute.Menu.path,
+        modifier = modifier
+    ) {
+        composable(LegacyRoute.Menu.path) { LegacyMenuScreen(nav) }
+        composable(LegacyRoute.BasicPreview.path) { LegacyBasicPreview() }
+        composable(LegacyRoute.CameraSwitching.path) { LegacyCameraSwitchingPreview() }
+        composable(LegacyRoute.TapToFocus.path) { LegacyTapToFocusPreview() }
+        composable(LegacyRoute.PhotoVideoCapture.path) { LegacyPhotoVideoCapturePreview() }
+        composable(LegacyRoute.Adaptive.path) { LegacyAdaptivePreview() }
     }
 }
 

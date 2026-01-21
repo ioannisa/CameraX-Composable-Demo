@@ -63,12 +63,19 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 ## Project Structure
 
 ```
-├── simplistic/              # Self-contained, minimal examples
-│   ├── BasicCameraPreview       → Just show the camera
-│   ├── CameraSwitchingPreview   → Front/back toggle
-│   ├── TapToFocusPreview        → Focus + zoom gestures
-│   ├── PhotoVideoCapturePreview → Capture photos & video
-│   └── AdaptivePreview          → Foldable/tablet layouts
+├── legacy/                  # THE OLD WAY: AndroidView + PreviewView
+│   ├── LegacyBasicPreview       → AndroidView wrapping PreviewView
+│   ├── LegacyCameraSwitching    → DisposableEffect coordination
+│   ├── LegacyTapToFocus         → View-based touch handling
+│   ├── LegacyPhotoVideoCapture  → View island in Compose
+│   └── LegacyAdaptivePreview    → SurfaceView animation issues
+│
+├── simplistic/              # THE NEW WAY: Pure Compose
+│   ├── BasicCameraPreview       → CameraXViewfinder + StateFlow
+│   ├── CameraSwitchingPreview   → LaunchedEffect(selector)
+│   ├── TapToFocusPreview        → MutableCoordinateTransformer
+│   ├── PhotoVideoCapturePreview → Multi-use-case binding
+│   └── AdaptivePreview          → Smooth Compose animations
 │
 ├── realistic/               # Production-ready with ViewModel
 │   ├── CameraViewModel          → State management
@@ -81,8 +88,9 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
     └── PermissionGate           → Declarative permission handling
 ```
 
-**Simplistic** = Learn the pattern in isolation
-**Realistic** = See how it fits in a real app
+**Legacy** = The old `AndroidView` + `PreviewView` approach (for comparison)
+**Simplistic** = The new pure Compose approach (learn in isolation)
+**Realistic** = Production-ready patterns with ViewModel
 
 ---
 

@@ -38,11 +38,15 @@ androidx-compose-material3-windowsizeclass = { group = "androidx.compose.materia
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 
 # CameraX Libraries :)
-androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
+# The New Compose Library
 androidx-camera-compose = { module = "androidx.camera:camera-compose", version.ref = "camerax" }
+# The Standard Camera Libraries
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "camerax" }
 androidx-camera-video = { module = "androidx.camera:camera-video", version.ref = "camerax" }
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
+# Legacy Camera PreviewView Library (for comparison examples - Its being replaced by the new compose library)
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
 
 # Koin
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
