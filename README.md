@@ -56,6 +56,7 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 | **Photo & Video** | Binding `Preview` + `ImageCapture` + `VideoCapture` together |
 | **Adaptive Layouts** | `WindowSizeClass` for foldables and tablets |
 | **Compose Effects** | Blur, alpha, rotation, grayscale — impossible with PreviewView! |
+| **Camera2Interop** | Manual ISO & shutter speed — extending CameraX with Camera2 parameters |
 | **Permissions** | Declarative `PermissionGate` inside the Compose tree |
 | **ViewModel Architecture** | Production-ready patterns with proper state management |
 
@@ -70,7 +71,8 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 │   ├── LegacyTapToFocus         → View-based touch handling
 │   ├── LegacyPhotoVideoCapture  → View island in Compose
 │   ├── LegacyAdaptivePreview    → SurfaceView animation issues
-│   └── LegacyEffectsPreview     → Compose effects DON'T work!
+│   ├── LegacyEffectsPreview     → Compose effects DON'T work!
+│   └── LegacyManualExposure     → Camera2Interop for ISO/shutter
 │
 ├── simplistic/              # THE NEW WAY: Pure Compose
 │   ├── BasicCameraPreview       → CameraXViewfinder + StateFlow
@@ -78,7 +80,8 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 │   ├── TapToFocusPreview        → MutableCoordinateTransformer
 │   ├── PhotoVideoCapturePreview → Multi-use-case binding
 │   ├── AdaptivePreview          → Smooth Compose animations
-│   └── EffectsPreview           → Compose effects WORK!
+│   ├── EffectsPreview           → Compose effects WORK!
+│   └── ManualExposurePreview    → Camera2Interop for ISO/shutter
 │
 ├── realistic/               # Production-ready with ViewModel
 │   ├── CameraViewModel          → State management
@@ -277,6 +280,74 @@ CameraXViewfinder(
 ```
 
 **Key insight**: Camera2 isn't "old" — it's the engine underneath everything. CameraX abstracts it. The only difference between XML and Compose is the top UI layer.
+
+---
+
+## Camera2Interop: Extending CameraX
+
+CameraX covers most camera features, but some "pro camera" features like **manual ISO and shutter speed** aren't exposed directly. For these, you use `Camera2Interop` to add Camera2 parameters to your CameraX use cases.
+
+### What CameraX Provides vs What Needs Camera2Interop
+
+| Feature | CameraX Native | Camera2Interop Needed |
+|---------|----------------|----------------------|
+| Exposure Compensation (EV) | ✓ | |
+| Manual ISO | | ✓ |
+| Manual Shutter Speed | | ✓ |
+| Disable Auto-Exposure | | ✓ |
+| Torch Intensity | | ✓ |
+
+### The Key Insight: Extending, Not Bypassing
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  WRONG: "Camera2Interop bypasses CameraX"                   │
+│  ─────────────────────────────────────────────────────────  │
+│  CameraX ──┐                                                │
+│            │ OR   ← Not how it works!                       │
+│  Camera2 ──┘                                                │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│  CORRECT: "Camera2Interop adds parameters TO CameraX"       │
+│  ─────────────────────────────────────────────────────────  │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  CameraX (still managing everything)                  │  │
+│  │  ┌─────────────────────────────────────────────────┐  │  │
+│  │  │  + Camera2 CaptureRequest parameters            │  │  │
+│  │  └─────────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Example: Manual Exposure Control
+
+```kotlin
+@ExperimentalCamera2Interop
+fun buildManualExposurePreview(iso: Int, shutterNs: Long): Preview {
+    val builder = Preview.Builder()
+
+    // Add Camera2 parameters to the CameraX use case
+    Camera2Interop.Extender(builder).apply {
+        setCaptureRequestOption(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF)
+        setCaptureRequestOption(CaptureRequest.SENSOR_SENSITIVITY, iso)
+        setCaptureRequestOption(CaptureRequest.SENSOR_EXPOSURE_TIME, shutterNs)
+    }
+
+    return builder.build()
+}
+```
+
+### Works Identically for Both Approaches
+
+Camera2Interop happens at the **use case builder level**, not the UI level. This means:
+
+| Approach | Camera2Interop Code | Result |
+|----------|---------------------|--------|
+| Legacy (PreviewView) | Identical | Same manual exposure control |
+| Compose (CameraXViewfinder) | Identical | Same manual exposure control |
+
+The demo includes `ManualExposurePreview` in both `legacy/` and `simplistic/` packages to demonstrate this — the Camera2Interop code is exactly the same, only the preview rendering differs.
 
 ---
 

@@ -88,6 +88,13 @@ fun SimplisticMenuScreen(nav: NavController) {
             ) {
                 Text("Compose Effects (All Work!)")
             }
+
+            Button(
+                onClick = { nav.navigate(SimplisticRoute.ManualExposure.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Manual Exposure (Camera2Interop)")
+            }
         }
     }
 }

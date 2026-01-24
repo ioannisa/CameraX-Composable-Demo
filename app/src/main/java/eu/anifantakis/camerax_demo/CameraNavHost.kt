@@ -25,6 +25,7 @@ import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyAdaptivePreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyBasicPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyCameraSwitchingPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyEffectsPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyManualExposurePreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyMenuScreen
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyPhotoVideoCapturePreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyTapToFocusPreview
@@ -40,6 +41,7 @@ import eu.anifantakis.camerax_demo.ui.screens.simplistic.TapToFocusPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.PhotoVideoCapturePreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.AdaptivePreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.EffectsPreview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.ManualExposurePreview
 
 // Routes for Simplistic examples
 sealed class SimplisticRoute(val path: String) {
@@ -50,6 +52,7 @@ sealed class SimplisticRoute(val path: String) {
     data object PhotoVideoCapture : SimplisticRoute("simplistic_photo_video_capture")
     data object Adaptive : SimplisticRoute("simplistic_adaptive")
     data object Effects : SimplisticRoute("simplistic_effects")
+    data object ManualExposure : SimplisticRoute("simplistic_manual_exposure")
 }
 
 // Routes for Realistic examples
@@ -70,6 +73,7 @@ sealed class LegacyRoute(val path: String) {
     data object PhotoVideoCapture : LegacyRoute("legacy_photo_video_capture")
     data object Adaptive : LegacyRoute("legacy_adaptive")
     data object Effects : LegacyRoute("legacy_effects")
+    data object ManualExposure : LegacyRoute("legacy_manual_exposure")
 }
 
 // Bottom navigation tabs
@@ -123,6 +127,7 @@ private fun LegacyNavHost(modifier: Modifier = Modifier) {
         composable(LegacyRoute.PhotoVideoCapture.path) { LegacyPhotoVideoCapturePreview() }
         composable(LegacyRoute.Adaptive.path) { LegacyAdaptivePreview() }
         composable(LegacyRoute.Effects.path) { LegacyEffectsPreview() }
+        composable(LegacyRoute.ManualExposure.path) { LegacyManualExposurePreview() }
     }
 }
 
@@ -141,6 +146,7 @@ private fun SimplisticNavHost(modifier: Modifier = Modifier) {
         composable(SimplisticRoute.PhotoVideoCapture.path) { PhotoVideoCapturePreview() }
         composable(SimplisticRoute.Adaptive.path) { AdaptivePreview() }
         composable(SimplisticRoute.Effects.path) { EffectsPreview() }
+        composable(SimplisticRoute.ManualExposure.path) { ManualExposurePreview() }
     }
 }
 

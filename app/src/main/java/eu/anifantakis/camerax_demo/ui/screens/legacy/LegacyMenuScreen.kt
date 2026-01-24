@@ -92,6 +92,13 @@ fun LegacyMenuScreen(nav: NavController) {
             ) {
                 Text("Compose Effects (Most Fail!)")
             }
+
+            Button(
+                onClick = { nav.navigate(LegacyRoute.ManualExposure.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Manual Exposure (Camera2Interop)")
+            }
         }
     }
 }
