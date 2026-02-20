@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -36,7 +36,7 @@ fun InteractivePreviewScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit) { vm.bindPreview(lifecycleOwner) }
-    val request by vm.surfaceRequest.collectAsState(initial = null)
+    val request by vm.surfaceRequest.collectAsStateWithLifecycle(initialValue = null)
 
     // Used by CameraXViewfinder to map UI space → camera surface space.
     val transformer = remember { MutableCoordinateTransformer() }

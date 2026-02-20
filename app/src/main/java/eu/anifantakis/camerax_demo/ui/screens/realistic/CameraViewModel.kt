@@ -24,6 +24,7 @@ import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.viewfinder.compose.MutableCoordinateTransformer
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Offset
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
@@ -49,7 +50,12 @@ import kotlin.coroutines.resume
  *  - ImageCapture: takes still photos (JPEG).
  *  - VideoCapture + Recorder: records encoded video to an output (e.g., MediaStore).
  *  - Camera: gives cameraInfo (zoomState) and cameraControl (zoom/focus commands).
+ *
+ * Note: In strict MVVM, the LifecycleOwner-aware binding (bindToLifecycle) should
+ * happen in the UI layer, since ViewModels shouldn't reference UI lifecycle. Here we
+ * pass it transiently for demo brevity — CameraX itself manages teardown via the owner.
  */
+@Stable
 class CameraViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- UI-observed state ---------------------------------------------------------------------
