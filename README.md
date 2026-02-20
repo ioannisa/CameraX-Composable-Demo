@@ -56,6 +56,7 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 | **Photo & Video** | Binding `Preview` + `ImageCapture` + `VideoCapture` together |
 | **Adaptive Layouts** | `WindowSizeClass` for foldables and tablets |
 | **Compose Effects** | Blur, alpha, rotation, grayscale — impossible with PreviewView! |
+| **Full Camera** | Combined camera switching + photo capture + video recording in one screen |
 | **Camera2Interop** | Manual ISO & shutter speed — extending CameraX with Camera2 parameters |
 | **Permissions** | Declarative `PermissionGate` inside the Compose tree |
 | **ViewModel Architecture** | Production-ready patterns with proper state management |
@@ -81,7 +82,8 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 │   ├── PhotoVideoCapturePreview → Multi-use-case binding
 │   ├── AdaptivePreview          → Smooth Compose animations
 │   ├── EffectsPreview           → Compose effects WORK!
-│   └── ManualExposurePreview    → Camera2Interop for ISO/shutter
+│   ├── ManualExposurePreview    → Camera2Interop for ISO/shutter
+│   └── FullCameraPreview        → Combined switching + photo + video
 │
 ├── realistic/               # Production-ready with ViewModel
 │   ├── CameraViewModel          → State management

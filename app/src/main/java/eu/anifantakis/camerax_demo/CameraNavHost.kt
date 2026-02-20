@@ -1,5 +1,7 @@
 package eu.anifantakis.camerax_demo
 
+import androidx.annotation.OptIn
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -41,6 +43,7 @@ import eu.anifantakis.camerax_demo.ui.screens.simplistic.TapToFocusPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.PhotoVideoCapturePreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.AdaptivePreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.EffectsPreview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.FullCameraPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.ManualExposurePreview
 
 // Routes for Simplistic examples
@@ -50,9 +53,11 @@ sealed class SimplisticRoute(val path: String) {
     data object CameraSwitching : SimplisticRoute("simplistic_camera_switching")
     data object TapToFocus : SimplisticRoute("simplistic_tap_to_focus")
     data object PhotoVideoCapture : SimplisticRoute("simplistic_photo_video_capture")
+
     data object Adaptive : SimplisticRoute("simplistic_adaptive")
     data object Effects : SimplisticRoute("simplistic_effects")
     data object ManualExposure : SimplisticRoute("simplistic_manual_exposure")
+    data object FullCamera : SimplisticRoute("simplistic_full_camera")
 }
 
 // Routes for Realistic examples
@@ -112,6 +117,10 @@ fun CameraNavHost(
     }
 }
 
+// Camera2Interop is experimental — opt-in required because ManualExposure demo
+// uses Camera2 capture-request parameters (ISO, shutter speed) via Camera2Interop.
+// Annotation needed for the ManualExposure route, but we can just annotate the whole NavHost for simplicity.
+@OptIn(ExperimentalCamera2Interop::class)
 @Composable
 private fun LegacyNavHost(modifier: Modifier = Modifier) {
     val nav = rememberNavController()
@@ -131,6 +140,10 @@ private fun LegacyNavHost(modifier: Modifier = Modifier) {
     }
 }
 
+// Camera2Interop is experimental — opt-in required because ManualExposure demo
+// uses Camera2 capture-request parameters (ISO, shutter speed) via Camera2Interop.
+// Annotation needed for the ManualExposure route, but we can just annotate the whole NavHost for simplicity.
+@OptIn(ExperimentalCamera2Interop::class)
 @Composable
 private fun SimplisticNavHost(modifier: Modifier = Modifier) {
     val nav = rememberNavController()
@@ -147,6 +160,7 @@ private fun SimplisticNavHost(modifier: Modifier = Modifier) {
         composable(SimplisticRoute.Adaptive.path) { AdaptivePreview() }
         composable(SimplisticRoute.Effects.path) { EffectsPreview() }
         composable(SimplisticRoute.ManualExposure.path) { ManualExposurePreview() }
+        composable(SimplisticRoute.FullCamera.path) { FullCameraPreview() }
     }
 }
 

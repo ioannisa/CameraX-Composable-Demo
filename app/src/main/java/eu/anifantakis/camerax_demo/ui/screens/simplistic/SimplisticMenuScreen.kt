@@ -95,6 +95,13 @@ fun SimplisticMenuScreen(nav: NavController) {
             ) {
                 Text("Manual Exposure (Camera2Interop)")
             }
+
+            Button(
+                onClick = { nav.navigate(SimplisticRoute.FullCamera.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Full Camera (Switch + Capture)")
+            }
         }
     }
 }
