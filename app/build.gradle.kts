@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.windowsizeclass)
+    implementation(libs.androidx.window)
 
 
     // Navigation
@@ -73,6 +74,10 @@ dependencies {
     implementation(libs.androidx.camera.compose)
     // Legacy PreviewView (for comparison examples)
     implementation(libs.androidx.camera.view)
+    // CameraX Extensions (Night, HDR, Bokeh, Face Retouch, Auto)
+    implementation(libs.androidx.camera.extensions)
+    // ML Kit integration helper (MlKitAnalyzer)
+    implementation(libs.androidx.camera.mlkit.vision)
 
     // KOIN (Kotlin Inject)
     implementation(libs.koin.android)
@@ -80,6 +85,19 @@ dependencies {
 
     // Extended Material Icons
     implementation(libs.androidx.compose.material.icons.extended)
+
+    // Media3 (video editing + playback)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.transformer)
+    implementation(libs.media3.effect)
+    implementation(libs.media3.ui.compose)
+
+    // ML Kit
+    implementation(libs.mlkit.face.detection)
+    implementation(libs.mlkit.pose.detection)
+    implementation(libs.mlkit.obj.detection)
+    implementation(libs.mlkit.segmentation.selfie)
+    implementation(libs.mlkit.barcode.scanning)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

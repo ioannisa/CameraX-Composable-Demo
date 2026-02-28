@@ -3,6 +3,8 @@ package eu.anifantakis.camerax_demo.ui.screens.simplistic
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -36,7 +38,7 @@ fun SimplisticMenuScreen(nav: NavController) {
         },
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
         ) {
@@ -90,10 +92,45 @@ fun SimplisticMenuScreen(nav: NavController) {
             }
 
             Button(
+                onClick = { nav.navigate(SimplisticRoute.ContentScale.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("ContentScale & Alignment")
+            }
+
+            Button(
+                onClick = { nav.navigate(SimplisticRoute.MlKit.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("ML Kit Vision Effects")
+            }
+
+            Button(
                 onClick = { nav.navigate(SimplisticRoute.ManualExposure.path) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Manual Exposure (Camera2Interop)")
+            }
+
+            Button(
+                onClick = { nav.navigate(SimplisticRoute.Extensions.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("CameraX Extensions")
+            }
+
+            Button(
+                onClick = { nav.navigate(SimplisticRoute.LensSelection.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Physical Lens Selection")
+            }
+
+            Button(
+                onClick = { nav.navigate(SimplisticRoute.Media3.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("CameraX + Media3 Pipeline")
             }
 
             Button(

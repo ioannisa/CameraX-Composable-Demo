@@ -26,9 +26,11 @@ import androidx.navigation.compose.rememberNavController
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyAdaptivePreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyBasicPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyCameraSwitchingPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyContentScalePreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyEffectsPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyManualExposurePreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyMenuScreen
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyMlKitPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyPhotoVideoCapturePreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyTapToFocusPreview
 import eu.anifantakis.camerax_demo.ui.screens.realistic.AdaptiveScreen
@@ -38,13 +40,23 @@ import eu.anifantakis.camerax_demo.ui.screens.realistic.PreviewOnlyScreen
 import eu.anifantakis.camerax_demo.ui.screens.realistic.RealisticMenuScreen
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.BasicCameraPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.CameraSwitchingPreview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.ContentScalePreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.SimplisticMenuScreen
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.TapToFocusPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.PhotoVideoCapturePreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.AdaptivePreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.EffectsPreview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.ExtensionsPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.FullCameraPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.ManualExposurePreview
+import eu.anifantakis.camerax_demo.ui.screens.realistic.mlkit.MlKitScreen
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.MlKitPreview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.LensSelectionPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyExtensionsPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyLensSelectionPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyMedia3Preview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.Media3Preview
+import eu.anifantakis.camerax_demo.ui.screens.realistic.media3.Media3Screen
 
 // Routes for Simplistic examples
 sealed class SimplisticRoute(val path: String) {
@@ -56,8 +68,13 @@ sealed class SimplisticRoute(val path: String) {
 
     data object Adaptive : SimplisticRoute("simplistic_adaptive")
     data object Effects : SimplisticRoute("simplistic_effects")
+    data object MlKit : SimplisticRoute("simplistic_mlkit")
     data object ManualExposure : SimplisticRoute("simplistic_manual_exposure")
     data object FullCamera : SimplisticRoute("simplistic_full_camera")
+    data object ContentScale : SimplisticRoute("simplistic_content_scale")
+    data object Extensions : SimplisticRoute("simplistic_extensions")
+    data object LensSelection : SimplisticRoute("simplistic_lens_selection")
+    data object Media3 : SimplisticRoute("simplistic_media3")
 }
 
 // Routes for Realistic examples
@@ -67,6 +84,8 @@ sealed class RealisticRoute(val path: String) {
     data object Interactive : RealisticRoute("realistic_interactive")
     data object Capture : RealisticRoute("realistic_capture")
     data object Adaptive : RealisticRoute("realistic_adaptive")
+    data object MlKit : RealisticRoute("realistic_mlkit")
+    data object Media3 : RealisticRoute("realistic_media3")
 }
 
 // Routes for Legacy examples (AndroidView + PreviewView)
@@ -78,7 +97,12 @@ sealed class LegacyRoute(val path: String) {
     data object PhotoVideoCapture : LegacyRoute("legacy_photo_video_capture")
     data object Adaptive : LegacyRoute("legacy_adaptive")
     data object Effects : LegacyRoute("legacy_effects")
+    data object MlKit : LegacyRoute("legacy_mlkit")
     data object ManualExposure : LegacyRoute("legacy_manual_exposure")
+    data object ContentScale : LegacyRoute("legacy_content_scale")
+    data object Extensions : LegacyRoute("legacy_extensions")
+    data object LensSelection : LegacyRoute("legacy_lens_selection")
+    data object Media3 : LegacyRoute("legacy_media3")
 }
 
 // Bottom navigation tabs
@@ -136,7 +160,12 @@ private fun LegacyNavHost(modifier: Modifier = Modifier) {
         composable(LegacyRoute.PhotoVideoCapture.path) { LegacyPhotoVideoCapturePreview() }
         composable(LegacyRoute.Adaptive.path) { LegacyAdaptivePreview() }
         composable(LegacyRoute.Effects.path) { LegacyEffectsPreview() }
+        composable(LegacyRoute.MlKit.path) { LegacyMlKitPreview() }
         composable(LegacyRoute.ManualExposure.path) { LegacyManualExposurePreview() }
+        composable(LegacyRoute.ContentScale.path) { LegacyContentScalePreview() }
+        composable(LegacyRoute.Extensions.path) { LegacyExtensionsPreview() }
+        composable(LegacyRoute.LensSelection.path) { LegacyLensSelectionPreview() }
+        composable(LegacyRoute.Media3.path) { LegacyMedia3Preview() }
     }
 }
 
@@ -159,8 +188,13 @@ private fun SimplisticNavHost(modifier: Modifier = Modifier) {
         composable(SimplisticRoute.PhotoVideoCapture.path) { PhotoVideoCapturePreview() }
         composable(SimplisticRoute.Adaptive.path) { AdaptivePreview() }
         composable(SimplisticRoute.Effects.path) { EffectsPreview() }
+        composable(SimplisticRoute.MlKit.path) { MlKitPreview() }
         composable(SimplisticRoute.ManualExposure.path) { ManualExposurePreview() }
         composable(SimplisticRoute.FullCamera.path) { FullCameraPreview() }
+        composable(SimplisticRoute.ContentScale.path) { ContentScalePreview() }
+        composable(SimplisticRoute.Extensions.path) { ExtensionsPreview() }
+        composable(SimplisticRoute.LensSelection.path) { LensSelectionPreview() }
+        composable(SimplisticRoute.Media3.path) { Media3Preview() }
     }
 }
 
@@ -177,5 +211,7 @@ private fun RealisticNavHost(modifier: Modifier = Modifier) {
         composable(RealisticRoute.Interactive.path) { InteractivePreviewScreen() }
         composable(RealisticRoute.Capture.path) { CaptureScreen() }
         composable(RealisticRoute.Adaptive.path) { AdaptiveScreen() }
+        composable(RealisticRoute.MlKit.path) { MlKitScreen() }
+        composable(RealisticRoute.Media3.path) { Media3Screen() }
     }
 }
