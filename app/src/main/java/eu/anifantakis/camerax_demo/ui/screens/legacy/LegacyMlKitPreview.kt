@@ -49,6 +49,7 @@ import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseDetection
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
 import eu.anifantakis.camerax_demo.ui.screens.mlkit.*
+import kotlinx.collections.immutable.toImmutableList
 import java.util.concurrent.Executors
 
 /**
@@ -221,7 +222,7 @@ fun LegacyMlKitPreview() {
             if (analysisImageWidth > 0) {
                 when (selectedEffect) {
                     MlKitEffect.FaceDetection -> FaceOverlay(
-                        faces = faceResults,
+                        faces = faceResults.toImmutableList(),
                         imageWidth = analysisImageWidth,
                         imageHeight = analysisImageHeight,
                         rotationDegrees = analysisRotation,

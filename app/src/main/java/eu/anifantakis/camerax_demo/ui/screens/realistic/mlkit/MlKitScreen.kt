@@ -33,6 +33,7 @@ import eu.anifantakis.camerax_demo.ui.screens.mlkit.FaceOverlay
 import eu.anifantakis.camerax_demo.ui.screens.mlkit.MlKitEffect
 import eu.anifantakis.camerax_demo.ui.screens.mlkit.ObjectOverlay
 import eu.anifantakis.camerax_demo.ui.screens.mlkit.PoseOverlay
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.androidx.compose.koinViewModel
 
 /**
@@ -100,7 +101,7 @@ fun MlKitScreen() {
             if (imageWidth > 0) {
                 when (selectedEffect) {
                     MlKitEffect.FaceDetection -> FaceOverlay(
-                        faces = faceResults,
+                        faces = faceResults.toImmutableList(),
                         imageWidth = imageWidth,
                         imageHeight = imageHeight,
                         rotationDegrees = rotation,

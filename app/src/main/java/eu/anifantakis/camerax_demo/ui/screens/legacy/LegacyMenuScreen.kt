@@ -1,16 +1,18 @@
 package eu.anifantakis.camerax_demo.ui.screens.legacy
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -18,6 +20,8 @@ import androidx.navigation.NavController
 import eu.anifantakis.camerax_demo.LegacyRoute
 import eu.anifantakis.camerax_demo.ui.components.Permission
 import eu.anifantakis.camerax_demo.ui.components.PermissionGate
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
 /**
  * Menu screen for Legacy (AndroidView + PreviewView) examples.
@@ -29,119 +33,219 @@ import eu.anifantakis.camerax_demo.ui.components.PermissionGate
  *
  * Compare these with the Simplistic examples to see the difference!
  */
+@NonRestartableComposable
 @Composable
 fun LegacyMenuScreen(nav: NavController) {
     PermissionGate(
         permission = Permission.CAMERA,
         contentNonGranted = { missing, humanReadable, requestPermissions ->
             PermissionNonGrantedContent(
-                permissionsNonGranted = missing,
+                permissionsNonGranted = missing.toImmutableList(),
                 humanReadablePermissionsNonGranted = humanReadable,
                 requestMissingPermissions = requestPermissions
             )
         },
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Legacy Examples", style = MaterialTheme.typography.headlineSmall)
-            Text(
-                "The OLD way: AndroidView + PreviewView.\nCompare with Simplistic to see the difference!",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Button(
-                onClick = { nav.navigate(LegacyRoute.BasicPreview.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Basic Camera Preview")
+            item {
+                Text("Legacy Examples", style = MaterialTheme.typography.headlineSmall)
+            }
+            item {
+                Text(
+                    "The OLD way: AndroidView + PreviewView.\nCompare with Simplistic to see the difference!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.CameraSwitching.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Camera Switching")
+            // ── Part 1: camera-compose (legacy counterparts) ────────
+            stickyHeader {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    Text(
+                        "Part 1: camera-compose",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        "Legacy counterparts using AndroidView + PreviewView.\nCompare side-by-side with the Simplistic tab.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.TapToFocus.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Tap-to-Focus & Pinch-to-Zoom")
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.BasicPreview.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Basic Camera Preview")
+                }
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.PhotoVideoCapture.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Photo & Video Capture")
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.CameraSwitching.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Camera Switching")
+                }
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.Adaptive.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Foldables & Adaptive UIs")
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.TapToFocus.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Tap-to-Focus & Pinch-to-Zoom")
+                }
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.Effects.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Compose Effects (Most Fail!)")
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.PhotoVideoCapture.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Photo & Video Capture")
+                }
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.ContentScale.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("ScaleType (Legacy Scaling)")
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.Effects.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Compose Effects (Most Fail!)")
+                }
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.MlKit.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("ML Kit Vision Effects")
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.ContentScale.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("ScaleType (Legacy Scaling)")
+                }
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.ManualExposure.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Manual Exposure (Camera2Interop)")
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.Adaptive.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Foldables & Adaptive UIs")
+                }
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.Extensions.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("CameraX Extensions")
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.ManualExposure.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Manual Exposure (Camera2Interop)")
+                }
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.LensSelection.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Physical Lens Selection")
+            // ── Part 2: CameraX 1.5.x ──────────────────────────────
+            stickyHeader {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    Text(
+                        "Part 2: CameraX 1.5.x",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        "Core platform APIs — identical code in Legacy and Compose.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.Media3.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("CameraX + Media3 Pipeline")
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.SessionConfig.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("SessionConfig (No unbindAll)")
+                }
             }
 
-            Button(
-                onClick = { nav.navigate(LegacyRoute.SessionConfig.path) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("SessionConfig (No unbindAll)")
+            // ── Part 3: Broader Ecosystem ───────────────────────────
+            stickyHeader {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    Text(
+                        "Part 3: Broader Ecosystem",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        "Pre-existing CameraX features — same APIs in Legacy and Compose.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.MlKit.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("ML Kit Vision Effects")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.Extensions.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("CameraX Extensions")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.LensSelection.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Physical Lens Selection")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.Media3.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("CameraX + Media3 Pipeline")
+                }
             }
         }
     }
@@ -150,7 +254,7 @@ fun LegacyMenuScreen(nav: NavController) {
 @Composable
 private fun PermissionNonGrantedContent(
     modifier: Modifier = Modifier,
-    permissionsNonGranted: List<String>,
+    permissionsNonGranted: ImmutableList<String>,
     humanReadablePermissionsNonGranted: String,
     requestMissingPermissions: (List<String>) -> Unit,
 ) {

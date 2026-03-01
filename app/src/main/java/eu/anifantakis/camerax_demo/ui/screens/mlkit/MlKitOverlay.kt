@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import kotlinx.collections.immutable.ImmutableList
 
 /**
  * Compose Canvas overlay that draws ML Kit detection results.
@@ -30,7 +31,7 @@ private val BarcodeBoxColor = Color(0xFFFF8800) // orange
 
 @Composable
 fun FaceOverlay(
-    faces: List<FaceResult>,
+    faces: ImmutableList<FaceResult>,
     imageWidth: Int,
     imageHeight: Int,
     rotationDegrees: Int,
