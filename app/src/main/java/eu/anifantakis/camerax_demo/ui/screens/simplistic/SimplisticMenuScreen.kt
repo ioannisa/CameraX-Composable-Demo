@@ -134,6 +134,13 @@ fun SimplisticMenuScreen(nav: NavController) {
             }
 
             Button(
+                onClick = { nav.navigate(SimplisticRoute.SessionConfig.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("SessionConfig (No unbindAll)")
+            }
+
+            Button(
                 onClick = { nav.navigate(SimplisticRoute.FullCamera.path) },
                 modifier = Modifier.fillMaxWidth()
             ) {

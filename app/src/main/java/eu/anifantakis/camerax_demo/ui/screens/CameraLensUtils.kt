@@ -38,9 +38,9 @@ data class CameraLensInfo(
  *
  * Classification uses physical focal length (not 35mm equivalent):
  *  - Ultrawide: < 3mm
- *  - Wide: 3mm – 6mm
- *  - Telephoto: 6mm – 10mm
- *  - Super Telephoto: >= 10mm
+ *  - Wide: 3mm – 7mm
+ *  - Telephoto: 7mm – 12mm
+ *  - Super Telephoto: >= 12mm
  */
 @ExperimentalCamera2Interop
 fun enumerateCameraLenses(cameraProvider: ProcessCameraProvider): List<CameraLensInfo> {

@@ -61,6 +61,7 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 | **ML Kit Vision Effects** | Real-time face/barcode detection with composable overlays |
 | **CameraX Extensions** | Night, HDR, Bokeh, Face Retouch, Auto — with per-lens availability |
 | **Physical Lens Selection** | Enumerate all cameras via `Camera2CameraInfo`, switch between ultrawide/wide/telephoto |
+| **SessionConfig** | `SessionConfig` replaces `unbindAll()` — switch Photo/Video modes by rebinding, plus Feature Group queries |
 | **CameraX + Media3** | Capture → Transformer editing (720p resize) → ExoPlayer + PlayerSurface playback |
 | **Camera2Interop** | Manual ISO & shutter speed — extending CameraX with Camera2 parameters |
 | **Permissions** | Declarative `PermissionGate` inside the Compose tree |
@@ -83,7 +84,8 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 │   ├── LegacyManualExposure        → Camera2Interop for ISO/shutter
 │   ├── LegacyExtensionsPreview     → CameraX Extensions + lens selector
 │   ├── LegacyLensSelectionPreview  → Physical camera enumeration
-│   └── LegacyMedia3Preview         → CameraX + Media3 pipeline
+│   ├── LegacyMedia3Preview         → CameraX + Media3 pipeline
+│   └── LegacySessionConfigPreview  → SessionConfig (no unbindAll)
 │
 ├── simplistic/              # THE NEW WAY: Pure Compose
 │   ├── BasicCameraPreview       → CameraXViewfinder + StateFlow
@@ -98,6 +100,7 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 │   ├── ExtensionsPreview        → CameraX Extensions + lens selector
 │   ├── LensSelectionPreview     → Physical camera enumeration
 │   ├── Media3Preview            → CameraX + Media3 pipeline
+│   ├── SessionConfigPreview     → SessionConfig (no unbindAll)
 │   └── FullCameraPreview        → Combined switching + photo + video
 │
 ├── mlkit/                   # Shared ML Kit utilities

@@ -136,6 +136,13 @@ fun LegacyMenuScreen(nav: NavController) {
             ) {
                 Text("CameraX + Media3 Pipeline")
             }
+
+            Button(
+                onClick = { nav.navigate(LegacyRoute.SessionConfig.path) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("SessionConfig (No unbindAll)")
+            }
         }
     }
 }

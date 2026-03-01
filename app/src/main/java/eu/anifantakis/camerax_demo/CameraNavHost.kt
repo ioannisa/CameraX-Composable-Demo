@@ -2,6 +2,7 @@ package eu.anifantakis.camerax_demo
 
 import androidx.annotation.OptIn
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop
+import androidx.camera.core.ExperimentalSessionConfig
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -55,7 +56,9 @@ import eu.anifantakis.camerax_demo.ui.screens.simplistic.LensSelectionPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyExtensionsPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyLensSelectionPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyMedia3Preview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacySessionConfigPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.Media3Preview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.SessionConfigPreview
 import eu.anifantakis.camerax_demo.ui.screens.realistic.media3.Media3Screen
 
 // Routes for Simplistic examples
@@ -75,6 +78,7 @@ sealed class SimplisticRoute(val path: String) {
     data object Extensions : SimplisticRoute("simplistic_extensions")
     data object LensSelection : SimplisticRoute("simplistic_lens_selection")
     data object Media3 : SimplisticRoute("simplistic_media3")
+    data object SessionConfig : SimplisticRoute("simplistic_session_config")
 }
 
 // Routes for Realistic examples
@@ -103,6 +107,7 @@ sealed class LegacyRoute(val path: String) {
     data object Extensions : LegacyRoute("legacy_extensions")
     data object LensSelection : LegacyRoute("legacy_lens_selection")
     data object Media3 : LegacyRoute("legacy_media3")
+    data object SessionConfig : LegacyRoute("legacy_session_config")
 }
 
 // Bottom navigation tabs
@@ -145,6 +150,7 @@ fun CameraNavHost(
 // uses Camera2 capture-request parameters (ISO, shutter speed) via Camera2Interop.
 // Annotation needed for the ManualExposure route, but we can just annotate the whole NavHost for simplicity.
 @OptIn(ExperimentalCamera2Interop::class)
+@kotlin.OptIn(ExperimentalSessionConfig::class)
 @Composable
 private fun LegacyNavHost(modifier: Modifier = Modifier) {
     val nav = rememberNavController()
@@ -166,6 +172,7 @@ private fun LegacyNavHost(modifier: Modifier = Modifier) {
         composable(LegacyRoute.Extensions.path) { LegacyExtensionsPreview() }
         composable(LegacyRoute.LensSelection.path) { LegacyLensSelectionPreview() }
         composable(LegacyRoute.Media3.path) { LegacyMedia3Preview() }
+        composable(LegacyRoute.SessionConfig.path) { LegacySessionConfigPreview() }
     }
 }
 
@@ -173,6 +180,7 @@ private fun LegacyNavHost(modifier: Modifier = Modifier) {
 // uses Camera2 capture-request parameters (ISO, shutter speed) via Camera2Interop.
 // Annotation needed for the ManualExposure route, but we can just annotate the whole NavHost for simplicity.
 @OptIn(ExperimentalCamera2Interop::class)
+@kotlin.OptIn(ExperimentalSessionConfig::class)
 @Composable
 private fun SimplisticNavHost(modifier: Modifier = Modifier) {
     val nav = rememberNavController()
@@ -195,6 +203,7 @@ private fun SimplisticNavHost(modifier: Modifier = Modifier) {
         composable(SimplisticRoute.Extensions.path) { ExtensionsPreview() }
         composable(SimplisticRoute.LensSelection.path) { LensSelectionPreview() }
         composable(SimplisticRoute.Media3.path) { Media3Preview() }
+        composable(SimplisticRoute.SessionConfig.path) { SessionConfigPreview() }
     }
 }
 
