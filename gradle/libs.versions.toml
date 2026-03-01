@@ -9,7 +9,7 @@ lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.4"
 composeBom = "2026.02.01"
 
-camerax = "1.5.3"
+camerax = "1.6.0-rc01"
 mlkitFaceDetection = "16.1.7"
 mlkitPoseDetection = "18.0.0-beta5"
 mlkitObjectDetection = "17.0.2"

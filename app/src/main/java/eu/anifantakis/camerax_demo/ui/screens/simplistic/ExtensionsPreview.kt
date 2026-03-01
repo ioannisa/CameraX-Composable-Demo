@@ -11,6 +11,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.core.SurfaceRequest
 import androidx.camera.extensions.ExtensionMode
+import androidx.camera.extensions.ExtensionSessionConfig
 import androidx.camera.extensions.ExtensionsManager
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
@@ -50,9 +51,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 /**
  * NEW WAY: CameraX Extensions with CameraXViewfinder
  *
- * Demonstrates how ExtensionsManager checks extension availability per-device
- * and produces an extension-enabled CameraSelector that replaces the normal one
- * during binding — the camera pipeline handles everything else.
+ * CameraX 1.6 introduces ExtensionSessionConfig — extensions are now configured
+ * through SessionConfig instead of swapping CameraSelectors. This screen uses
+ * the new approach: build an ExtensionSessionConfig with the desired mode and
+ * bind it directly, keeping the base CameraSelector unchanged.
+ *
+ * Also uses the new suspending ExtensionsManager.getInstance() (CameraX 1.6)
+ * instead of the callback-based getInstanceAsync().
  *
  * Extensions provide hardware-backed image processing modes:
  *  - Night: Enhanced low-light photography
@@ -113,7 +118,7 @@ fun ExtensionsPreview() {
     LaunchedEffect(selectedLens) {
         val lens = selectedLens ?: return@LaunchedEffect
         val cameraProvider = ProcessCameraProvider.awaitInstance(context)
-        val extensionsManager = ExtensionsManager.getInstanceAsync(context, cameraProvider).get()
+        val extensionsManager = ExtensionsManager.getInstance(context, cameraProvider)
         val baseSelector = buildCameraSelectorForId(lens.cameraId)
 
         availability = ExtensionModeOption.entries.associate { option ->
@@ -128,22 +133,13 @@ fun ExtensionsPreview() {
         selectedMode = ExtensionModeOption.None
     }
 
-    // Rebind camera whenever the selected lens or mode changes
+    // Rebind camera whenever the selected lens or mode changes.
+    // CameraX 1.6: Use ExtensionSessionConfig instead of swapping CameraSelectors.
     LaunchedEffect(selectedLens, selectedMode) {
         val lens = selectedLens ?: return@LaunchedEffect
         val cameraProvider = ProcessCameraProvider.awaitInstance(context)
-        val extensionsManager = ExtensionsManager.getInstanceAsync(context, cameraProvider).get()
+        val extensionsManager = ExtensionsManager.getInstance(context, cameraProvider)
         val baseSelector = buildCameraSelectorForId(lens.cameraId)
-
-        val cameraSelector = if (selectedMode.mode != ExtensionMode.NONE &&
-            extensionsManager.isExtensionAvailable(baseSelector, selectedMode.mode)
-        ) {
-            extensionsManager.getExtensionEnabledCameraSelector(
-                baseSelector, selectedMode.mode
-            )
-        } else {
-            baseSelector
-        }
 
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequests.value = req }
@@ -154,7 +150,21 @@ fun ExtensionsPreview() {
             .build()
 
         cameraProvider.unbindAll()
-        cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imgCapture)
+
+        if (selectedMode.mode != ExtensionMode.NONE &&
+            extensionsManager.isExtensionAvailable(baseSelector, selectedMode.mode)
+        ) {
+            // 1.6 approach: bundle extension mode into SessionConfig
+            val sessionConfig = ExtensionSessionConfig(
+                mode = selectedMode.mode,
+                extensionsManager = extensionsManager,
+                useCases = listOf(preview, imgCapture)
+            )
+            cameraProvider.bindToLifecycle(lifecycleOwner, baseSelector, sessionConfig)
+        } else {
+            cameraProvider.bindToLifecycle(lifecycleOwner, baseSelector, preview, imgCapture)
+        }
+
         imageCapture = imgCapture
     }
 

@@ -6,13 +6,14 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalSessionConfig
+
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.core.SessionConfig
 import androidx.camera.core.featuregroup.GroupableFeature
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.GroupableFeatures as VideoFeatures
 import androidx.camera.video.MediaStoreOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
@@ -59,13 +60,15 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
  *  - Callback-based ProcessCameraProvider.getInstance() (instead of awaitInstance)
  *  - DisposableEffect for lifecycle management (instead of LaunchedEffect)
  *
- * The SessionConfig binding code is identical — that's the point. SessionConfig
- * is a core CameraX API, not a Compose-specific one. It works the same way
- * regardless of how you display the preview.
+ * SessionConfig was introduced in CameraX 1.5 and is stable since 1.6. The
+ * binding code is identical across both UI approaches — that's the point.
+ * SessionConfig is a core CameraX API, not a Compose-specific one.
+ *
+ * CameraX 1.6 expands feature group constants to include video-specific
+ * features (VIDEO_STABILIZATION, UHD_RECORDING) from the camera-video module.
  *
  * Compare with: simplistic/SessionConfigPreview.kt for the modern Compose approach.
  *
- * NOTE: ImageAnalysis and CameraEffect are NOT supported with feature groups.
  * Most emulators report false for all features — real device needed for meaningful results.
  */
 
@@ -74,7 +77,6 @@ private enum class LegacyCaptureMode(val label: String) {
     Video("Video")
 }
 
-@ExperimentalSessionConfig
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LegacySessionConfigPreview() {
@@ -127,7 +129,7 @@ fun LegacySessionConfigPreview() {
                     cameraInfo = camera.cameraInfo
 
                     // Query feature group support after binding.
-                    // isFeatureGroupSupported() takes a SessionConfig with the feature set
+                    // isSessionConfigSupported() takes a SessionConfig with the feature set
                     // as required, so we build a probe SessionConfig for each feature.
                     featureSupport = queryFeatureSupport(camera.cameraInfo)
                 }
@@ -319,7 +321,6 @@ fun LegacySessionConfigPreview() {
     }
 }
 
-@ExperimentalSessionConfig
 private fun queryFeatureSupport(info: CameraInfo): Map<String, Boolean> {
     val probePreview = Preview.Builder().build()
     val probeCapture = ImageCapture.Builder().build()
@@ -330,6 +331,9 @@ private fun queryFeatureSupport(info: CameraInfo): Map<String, Boolean> {
         "60 FPS" to GroupableFeature.FPS_60,
         "Preview Stabilization" to GroupableFeature.PREVIEW_STABILIZATION,
         "Ultra HDR Images" to GroupableFeature.IMAGE_ULTRA_HDR,
+        // CameraX 1.6: New video feature group constants
+        "Video Stabilization" to VideoFeatures.VIDEO_STABILIZATION,
+        "UHD Recording" to VideoFeatures.UHD_RECORDING,
     )
 
     return features.mapValues { (_, feature) ->
@@ -338,7 +342,7 @@ private fun queryFeatureSupport(info: CameraInfo): Map<String, Boolean> {
                 useCases = probeUseCases,
                 requiredFeatureGroup = setOf(feature)
             )
-            info.isFeatureGroupSupported(probeConfig)
+            info.isSessionConfigSupported(probeConfig)
         } catch (_: Exception) {
             false
         }

@@ -9,6 +9,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.extensions.ExtensionMode
+import androidx.camera.extensions.ExtensionSessionConfig
 import androidx.camera.extensions.ExtensionsManager
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -47,9 +48,9 @@ import eu.anifantakis.camerax_demo.ui.screens.enumerateCameraLenses
 /**
  * LEGACY: CameraX Extensions with AndroidView + PreviewView
  *
- * Demonstrates how ExtensionsManager checks extension availability per-device
- * and produces an extension-enabled CameraSelector that replaces the normal one
- * during binding — the camera pipeline handles everything else.
+ * CameraX 1.6 introduces ExtensionSessionConfig — extensions are now configured
+ * through SessionConfig instead of swapping CameraSelectors. This screen uses
+ * the new approach with the legacy DisposableEffect + callback pattern.
  *
  * KEY POINT: Extensions primarily affect CAPTURED images, not the live preview.
  * The preview may look identical across modes — the real difference is in the
@@ -61,7 +62,7 @@ import eu.anifantakis.camerax_demo.ui.screens.enumerateCameraLenses
  * This screen lets you switch lenses to explore availability differences.
  *
  * Extensions work identically with both PreviewView and CameraXViewfinder — same
- * ExtensionsManager API, same CameraSelector swap, same result.
+ * ExtensionsManager API, same ExtensionSessionConfig binding, same result.
  *
  * Compare with: simplistic/ExtensionsPreview.kt for the modern Compose approach.
  */
@@ -137,7 +138,8 @@ fun LegacyExtensionsPreview() {
         onDispose { }
     }
 
-    // Rebind camera whenever the selected lens or mode changes
+    // Rebind camera whenever the selected lens or mode changes.
+    // CameraX 1.6: Use ExtensionSessionConfig instead of swapping CameraSelectors.
     DisposableEffect(selectedLens, selectedMode) {
         val lens = selectedLens
         if (lens != null) {
@@ -149,16 +151,6 @@ fun LegacyExtensionsPreview() {
                     val extensionsManager = extensionsManagerFuture.get()
                     val baseSelector = buildCameraSelectorForId(lens.cameraId)
 
-                    val cameraSelector = if (selectedMode.mode != ExtensionMode.NONE &&
-                        extensionsManager.isExtensionAvailable(baseSelector, selectedMode.mode)
-                    ) {
-                        extensionsManager.getExtensionEnabledCameraSelector(
-                            baseSelector, selectedMode.mode
-                        )
-                    } else {
-                        baseSelector
-                    }
-
                     val preview = Preview.Builder().build()
                     preview.surfaceProvider = previewView.surfaceProvider
 
@@ -167,7 +159,21 @@ fun LegacyExtensionsPreview() {
                         .build()
 
                     cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imgCapture)
+
+                    if (selectedMode.mode != ExtensionMode.NONE &&
+                        extensionsManager.isExtensionAvailable(baseSelector, selectedMode.mode)
+                    ) {
+                        // 1.6 approach: bundle extension mode into SessionConfig
+                        val sessionConfig = ExtensionSessionConfig(
+                            mode = selectedMode.mode,
+                            extensionsManager = extensionsManager,
+                            useCases = listOf(preview, imgCapture)
+                        )
+                        cameraProvider.bindToLifecycle(lifecycleOwner, baseSelector, sessionConfig)
+                    } else {
+                        cameraProvider.bindToLifecycle(lifecycleOwner, baseSelector, preview, imgCapture)
+                    }
+
                     imageCapture = imgCapture
                 }, mainExecutor)
             }, mainExecutor)

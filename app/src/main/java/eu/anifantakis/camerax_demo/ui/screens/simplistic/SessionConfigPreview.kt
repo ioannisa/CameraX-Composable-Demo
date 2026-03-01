@@ -7,7 +7,7 @@ import android.widget.Toast
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalSessionConfig
+
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
@@ -16,6 +16,7 @@ import androidx.camera.core.SurfaceRequest
 import androidx.camera.core.featuregroup.GroupableFeature
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
+import androidx.camera.video.GroupableFeatures as VideoFeatures
 import androidx.camera.video.MediaStoreOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
@@ -57,10 +58,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 /**
  * NEW WAY: SessionConfig demo with CameraXViewfinder
  *
- * Demonstrates SessionConfig — the CameraX 1.5 API that replaces manual
- * unbindAll()/rebind cycles. Instead of calling unbindAll() before switching
- * configurations, you simply bind a new SessionConfig and CameraX handles
- * the transition implicitly.
+ * Demonstrates SessionConfig — introduced in CameraX 1.5 and stable since 1.6.
+ * Replaces manual unbindAll()/rebind cycles. Instead of calling unbindAll()
+ * before switching configurations, you simply bind a new SessionConfig and
+ * CameraX handles the transition implicitly.
  *
  * TWO MODES:
  *  - Photo: Preview + ImageCapture
@@ -68,11 +69,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
  *
  * Switching modes just binds a new SessionConfig — no unbindAll() needed.
  *
- * FEATURE GROUPS: After binding, queries CameraInfo.isFeatureGroupSupported()
- * to show which hardware-backed feature combinations the device supports
- * (HDR HLG10, 60 FPS, Preview Stabilization, Ultra HDR Images).
+ * FEATURE GROUPS: After binding, queries CameraInfo.isSessionConfigSupported()
+ * to show which hardware-backed feature combinations the device supports.
+ * CameraX 1.6 expands the feature group constants to include video-specific
+ * features like VIDEO_STABILIZATION and UHD_RECORDING from camera-video.
  *
- * NOTE: ImageAnalysis and CameraEffect are NOT supported with feature groups.
  * Most emulators report false for all features — real device needed for meaningful results.
  */
 
@@ -81,7 +82,6 @@ private enum class CaptureMode(val label: String) {
     Video("Video")
 }
 
-@ExperimentalSessionConfig
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SessionConfigPreview() {
@@ -155,7 +155,7 @@ fun SessionConfigPreview() {
     }
 
     // Query feature group support after camera is bound.
-    // isFeatureGroupSupported() takes a SessionConfig with the feature set as required,
+    // isSessionConfigSupported() takes a SessionConfig with the feature set as required,
     // so we build a probe SessionConfig for each feature to test individually.
     LaunchedEffect(cameraInfo) {
         val info = cameraInfo ?: return@LaunchedEffect
@@ -170,6 +170,9 @@ fun SessionConfigPreview() {
             "60 FPS" to GroupableFeature.FPS_60,
             "Preview Stabilization" to GroupableFeature.PREVIEW_STABILIZATION,
             "Ultra HDR Images" to GroupableFeature.IMAGE_ULTRA_HDR,
+            // CameraX 1.6: New video feature group constants
+            "Video Stabilization" to VideoFeatures.VIDEO_STABILIZATION,
+            "UHD Recording" to VideoFeatures.UHD_RECORDING,
         )
 
         featureSupport = features.mapValues { (_, feature) ->
@@ -178,7 +181,7 @@ fun SessionConfigPreview() {
                     useCases = probeUseCases,
                     requiredFeatureGroup = setOf(feature)
                 )
-                info.isFeatureGroupSupported(probeConfig)
+                info.isSessionConfigSupported(probeConfig)
             } catch (_: Exception) {
                 false
             }

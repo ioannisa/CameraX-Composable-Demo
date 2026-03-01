@@ -2,7 +2,6 @@ package eu.anifantakis.camerax_demo
 
 import androidx.annotation.OptIn
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop
-import androidx.camera.core.ExperimentalSessionConfig
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -150,7 +149,6 @@ fun CameraNavHost(
 // uses Camera2 capture-request parameters (ISO, shutter speed) via Camera2Interop.
 // Annotation needed for the ManualExposure route, but we can just annotate the whole NavHost for simplicity.
 @OptIn(ExperimentalCamera2Interop::class)
-@kotlin.OptIn(ExperimentalSessionConfig::class)
 @Composable
 private fun LegacyNavHost(modifier: Modifier = Modifier) {
     val nav = rememberNavController()
@@ -180,7 +178,6 @@ private fun LegacyNavHost(modifier: Modifier = Modifier) {
 // uses Camera2 capture-request parameters (ISO, shutter speed) via Camera2Interop.
 // Annotation needed for the ManualExposure route, but we can just annotate the whole NavHost for simplicity.
 @OptIn(ExperimentalCamera2Interop::class)
-@kotlin.OptIn(ExperimentalSessionConfig::class)
 @Composable
 private fun SimplisticNavHost(modifier: Modifier = Modifier) {
     val nav = rememberNavController()
