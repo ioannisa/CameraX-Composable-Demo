@@ -55,7 +55,7 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 | **Pinch-to-Zoom** | Standard Compose gestures with `detectTransformGestures` |
 | **Photo & Video** | Binding `Preview` + `ImageCapture` + `VideoCapture` together |
 | **Adaptive Layouts** | `WindowSizeClass` for foldables and tablets |
-| **Compose Effects** | Blur, alpha, rotation, grayscale — impossible with PreviewView! |
+| **Compose Effects** | Blur, alpha, rotation, grayscale — EMBEDDED vs EXTERNAL mode comparison |
 | **Full Camera** | Combined camera switching + photo capture + video recording in one screen |
 | **ContentScale & Alignment** | `ContentScale.Crop`, `Fit`, `FillBounds` + alignment for non-standard aspect ratios |
 | **ML Kit Vision Effects** | Real-time face/barcode detection with composable overlays |
@@ -75,10 +75,11 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 ├── legacy/                  # THE OLD WAY: AndroidView + PreviewView
 │   ├── LegacyBasicPreview          → AndroidView wrapping PreviewView
 │   ├── LegacyCameraSwitching       → DisposableEffect coordination
-│   ├── LegacyTapToFocus            → View-based touch handling
+│   ├── LegacyTapToFocus            → View-based touch handling (ProcessCameraProvider)
+│   ├── LegacyControllerPreview     → LifecycleCameraController (built-in gestures)
 │   ├── LegacyPhotoVideoCapture     → View island in Compose
 │   ├── LegacyAdaptivePreview       → SurfaceView animation issues
-│   ├── LegacyEffectsPreview        → Compose effects DON'T work!
+│   ├── LegacyEffectsPreview        → PERFORMANCE vs COMPATIBLE mode toggle
 │   ├── LegacyContentScalePreview   → ScaleType (legacy equivalent)
 │   ├── LegacyMlKitPreview          → ML Kit with PreviewView
 │   ├── LegacyManualExposure        → Camera2Interop for ISO/shutter
@@ -93,7 +94,7 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 │   ├── TapToFocusPreview        → MutableCoordinateTransformer
 │   ├── PhotoVideoCapturePreview → Multi-use-case binding
 │   ├── AdaptivePreview          → Smooth Compose animations
-│   ├── EffectsPreview           → Compose effects WORK!
+│   ├── EffectsPreview           → EXTERNAL vs EMBEDDED mode toggle
 │   ├── ContentScalePreview      → ContentScale + Alignment combos
 │   ├── MlKitPreview             → ML Kit face/barcode overlays
 │   ├── ManualExposurePreview    → Camera2Interop for ISO/shutter
@@ -261,44 +262,35 @@ cd camerax-compose-demo
 
 ---
 
-## The Rendering Black Box Problem
+## Rendering Modes & Compose Effects
 
-PreviewView is a **View** — a foreign object in your Compose tree. It doesn't participate in Compose's graphics layer:
+Both PreviewView and CameraXViewfinder offer two rendering modes with identical effect-support trade-offs:
 
-| Effect | PreviewView | CameraXViewfinder EMBEDDED |
-|--------|-------------|---------------------------|
-| Circle Clip | ✓ | ✓ |
-| Blur | ✗ | ✓ |
-| Alpha 50% | ✗ | ✓ |
-| Rotation | ✗ | ✓ |
-| Grayscale | ✗ | ✓ |
+| Mode | PreviewView | CameraXViewfinder | Compose Effects |
+|------|-------------|-------------------|-----------------|
+| **Hardware overlay** | PERFORMANCE (SurfaceView) | EXTERNAL (SurfaceView) | Only Clip works |
+| **Texture-based** | COMPATIBLE (TextureView) | EMBEDDED (TextureView) | The demonstrated effects work |
+
+The demonstrated effects (blur, alpha, rotation, grayscale, clip) work in **both** COMPATIBLE and EMBEDDED modes. So why prefer CameraXViewfinder? **Architecture, not effects.** PreviewView inside `AndroidView` means managing two lifecycle systems (View + Compose). CameraXViewfinder is a native composable — one system, idiomatic Compose, unidirectional data flow.
 
 ```kotlin
-// With PreviewView - these DON'T work:
+// PreviewView COMPATIBLE — effects work, but two lifecycle systems
 AndroidView(
-    factory = { PreviewView(it) },
-    modifier = Modifier
-        .blur(20.dp)        // ✗ Ignored
-        .alpha(0.5f)        // ✗ Ignored
-        .graphicsLayer {
-            rotationZ = 15f  // ✗ Ignored
-        }
+    factory = { PreviewView(it).apply {
+        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+    }},
+    modifier = Modifier.blur(20.dp)  // ✓ Works
 )
 
-// With CameraXViewfinder EMBEDDED - they ALL work:
+// CameraXViewfinder EMBEDDED — effects work, native composable
 CameraXViewfinder(
     surfaceRequest = request,
     implementationMode = ImplementationMode.EMBEDDED,
-    modifier = Modifier
-        .blur(20.dp)        // ✓ Works!
-        .alpha(0.5f)        // ✓ Works!
-        .graphicsLayer {
-            rotationZ = 15f  // ✓ Works!
-        }
+    modifier = Modifier.blur(20.dp)  // ✓ Works — and no View lifecycle to manage
 )
 ```
 
-**CameraXViewfinder with EMBEDDED mode is a true composable.** It plays by Compose rules.
+**The win isn't effect support — it's eliminating the View-inside-Compose lifecycle mismatch.**
 
 ---
 

@@ -114,6 +114,15 @@ fun LegacyMenuScreen(nav: NavController) {
 
             item {
                 Button(
+                    onClick = { nav.navigate(LegacyRoute.Controller.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Tap-to-Focus & Zoom (Controller)")
+                }
+            }
+
+            item {
+                Button(
                     onClick = { nav.navigate(LegacyRoute.PhotoVideoCapture.path) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -157,7 +166,7 @@ fun LegacyMenuScreen(nav: NavController) {
                 }
             }
 
-            // ── Part 2: CameraX 1.5.x ──────────────────────────────
+            // ── Part 2: CameraX 1.5 / 1.6 ────────────────────────────
             stickyHeader {
                 Column(
                     modifier = Modifier
@@ -168,7 +177,7 @@ fun LegacyMenuScreen(nav: NavController) {
                 ) {
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                     Text(
-                        "Part 2: CameraX 1.5.x",
+                        "Part 2: CameraX 1.5 / 1.6",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )

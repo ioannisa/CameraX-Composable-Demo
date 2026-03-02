@@ -25,6 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyAdaptivePreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyBasicPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyControllerPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyCameraSwitchingPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyContentScalePreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyEffectsPreview
@@ -107,6 +108,7 @@ sealed class LegacyRoute(val path: String) {
     data object LensSelection : LegacyRoute("legacy_lens_selection")
     data object Media3 : LegacyRoute("legacy_media3")
     data object SessionConfig : LegacyRoute("legacy_session_config")
+    data object Controller : LegacyRoute("legacy_controller")
 }
 
 // Bottom navigation tabs
@@ -171,6 +173,7 @@ private fun LegacyNavHost(modifier: Modifier = Modifier) {
         composable(LegacyRoute.LensSelection.path) { LegacyLensSelectionPreview() }
         composable(LegacyRoute.Media3.path) { LegacyMedia3Preview() }
         composable(LegacyRoute.SessionConfig.path) { LegacySessionConfigPreview() }
+        composable(LegacyRoute.Controller.path) { LegacyControllerPreview() }
     }
 }
 
