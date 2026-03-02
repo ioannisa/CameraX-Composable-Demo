@@ -12,7 +12,7 @@
 
 **Companion repository for:**
 - **Article**: [Compose-Native CameraX in 2026: The Complete Guide](https://proandroiddev.com/compose-native-camerax-in-2026-the-complete-guide-bf36c76a78e9)
-- **Presentation**: *"CameraX Goes Compose"* — Droidcon 2025
+- **Presentation**: *"CameraX Goes Compose"* — Droidcon 2026 - (soon to be published)
 
 ---
 
