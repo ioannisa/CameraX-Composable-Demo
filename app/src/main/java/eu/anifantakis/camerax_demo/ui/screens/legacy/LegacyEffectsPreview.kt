@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,17 +47,22 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 /**
  * LEGACY: Effects with AndroidView + PreviewView
  *
- * KEY FINDING: PreviewView is still a View - it doesn't participate in
- * Compose's graphics layer. Some effects simply CANNOT work:
+ * IMPLEMENTATION MODES (PreviewView):
+ *  - PERFORMANCE (SurfaceView) — Hardware overlay outside the rendering pipeline.
+ *    Best latency, but only Clip works. All other Compose effects are ignored.
+ *  - COMPATIBLE (TextureView) — Texture participates in the rendering pipeline.
+ *    The demonstrated visual effects (blur, alpha, rotation, RenderEffect, clip) work.
  *
- *  - Clip: Works in both modes (SurfaceView respects composable bounds)
- *  - Blur: NEVER works - not even in TextureView/COMPATIBLE mode!
+ * These mirror the same high-level tradeoff as CameraXViewfinder's EXTERNAL / EMBEDDED:
+ *  - PERFORMANCE ≈ EXTERNAL: Only clip works
+ *  - COMPATIBLE ≈ EMBEDDED: The demonstrated effects work
  *
- * This is the fundamental limitation: PreviewView is a "foreign object"
- * in your Compose tree. It can't participate in Compose's rendering pipeline.
+ * So why prefer CameraXViewfinder? Not because of effect support — because of
+ * architecture. With PreviewView you're managing a View lifecycle inside Compose
+ * (two systems). With CameraXViewfinder, the preview is a native composable
+ * (one system, idiomatic Compose, unidirectional data flow).
  *
- * Compare with: simplistic/EffectsPreview.kt where EMBEDDED mode enables blur
- * because CameraXViewfinder is a TRUE composable.
+ * Compare with: simplistic/EffectsPreview.kt for the CameraXViewfinder equivalent.
  */
 
 enum class LegacyEffectType(val label: String) {
@@ -76,7 +82,19 @@ fun LegacyEffectsPreview() {
 
     var selectedEffect by remember { mutableStateOf(LegacyEffectType.None) }
 
-    val previewView = remember { PreviewView(context) }
+    // Toggle between PERFORMANCE (SurfaceView) and COMPATIBLE (TextureView).
+    // These are the legacy equivalents of CameraXViewfinder's EXTERNAL / EMBEDDED.
+    var useCompatible by remember { mutableStateOf(false) }
+
+    // Recreate PreviewView when mode changes — implementationMode must be set before binding.
+    val previewView = remember(useCompatible) {
+        PreviewView(context).apply {
+            implementationMode = if (useCompatible)
+                PreviewView.ImplementationMode.COMPATIBLE
+            else
+                PreviewView.ImplementationMode.PERFORMANCE
+        }
+    }
 
     DisposableEffect(previewView) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
@@ -100,11 +118,31 @@ fun LegacyEffectsPreview() {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Effect selector - using FlowRow for wrapping
+        // Implementation mode toggle — mirrors EffectsPreview's EXTERNAL/EMBEDDED toggle
         FlowRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            FilterChip(
+                selected = !useCompatible,
+                onClick = { useCompatible = false },
+                label = { Text("PERFORMANCE") }
+            )
+            FilterChip(
+                selected = useCompatible,
+                onClick = { useCompatible = true },
+                label = { Text("COMPATIBLE") },
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+
+        // Effect selector
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             LegacyEffectType.entries.forEach { effect ->
@@ -116,8 +154,12 @@ fun LegacyEffectsPreview() {
             }
         }
 
-        // Status message
-        val effectWorks = selectedEffect == LegacyEffectType.Circle || selectedEffect == LegacyEffectType.None
+        // Status message — varies by mode AND effect
+        val modeName = if (useCompatible) "COMPATIBLE" else "PERFORMANCE"
+        val needsCompatible = selectedEffect !in listOf(
+            LegacyEffectType.None, LegacyEffectType.Circle
+        )
+        val effectWorks = useCompatible || !needsCompatible
 
         Box(
             modifier = Modifier
@@ -130,13 +172,18 @@ fun LegacyEffectsPreview() {
                 .padding(12.dp)
         ) {
             Text(
-                text = when (selectedEffect) {
-                    LegacyEffectType.None -> "Select an effect. Only Circle Clip works with PreviewView!"
-                    LegacyEffectType.Circle -> "✓ Clip works! (This also works with CameraXViewfinder)"
-                    LegacyEffectType.Blur -> "✗ BLUR DOESN'T WORK! PreviewView can't participate in Compose's graphics layer."
-                    LegacyEffectType.Alpha -> "✗ ALPHA DOESN'T WORK! PreviewView ignores Compose transparency."
-                    LegacyEffectType.Rotation -> "✗ ROTATION DOESN'T WORK! graphicsLayer transforms are ignored."
-                    LegacyEffectType.Grayscale -> "✗ GRAYSCALE DOESN'T WORK! RenderEffect can't affect PreviewView."
+                text = when {
+                    selectedEffect == LegacyEffectType.None ->
+                        "Mode: $modeName. Select an effect to test."
+
+                    selectedEffect == LegacyEffectType.Circle ->
+                        "✓ Clip works in both modes! (Also works with CameraXViewfinder)"
+
+                    useCompatible ->
+                        "✓ ${selectedEffect.label} works in COMPATIBLE! TextureView participates in the rendering pipeline, so Compose effects apply."
+
+                    else ->
+                        "✗ ${selectedEffect.label} doesn't work in PERFORMANCE. SurfaceView is a hardware overlay outside the rendering pipeline. Switch to COMPATIBLE."
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White
@@ -190,10 +237,14 @@ fun LegacyEffectsPreview() {
                 }
             }
 
-            AndroidView(
-                factory = { previewView },
-                modifier = effectModifier
-            )
+            // key() forces Compose to tear down and recreate the AndroidView when
+            // the mode changes — necessary because factory only runs once per composition.
+            key(useCompatible) {
+                AndroidView(
+                    factory = { previewView },
+                    modifier = effectModifier
+                )
+            }
         }
     }
 }

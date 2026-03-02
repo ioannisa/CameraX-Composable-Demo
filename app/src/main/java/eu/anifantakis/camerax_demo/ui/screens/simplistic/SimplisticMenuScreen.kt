@@ -162,7 +162,7 @@ fun SimplisticMenuScreen(nav: NavController) {
                 }
             }
 
-            // ── Part 2: CameraX 1.5.x ──────────────────────────────
+            // ── Part 2: CameraX 1.5 / 1.6 ──────────────────────────────
             stickyHeader {
                 Column(
                     modifier = Modifier
@@ -173,7 +173,7 @@ fun SimplisticMenuScreen(nav: NavController) {
                 ) {
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                     Text(
-                        "Part 2: CameraX 1.5.x",
+                        "Part 2: CameraX 1.5 / 1.6",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )

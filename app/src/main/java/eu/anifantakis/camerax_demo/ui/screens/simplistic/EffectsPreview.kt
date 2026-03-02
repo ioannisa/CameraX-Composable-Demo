@@ -3,7 +3,6 @@ package eu.anifantakis.camerax_demo.ui.screens.simplistic
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.RenderEffect
-import android.graphics.Shader
 import android.os.Build
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.CameraSelector
@@ -50,19 +49,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 /**
  * NEW WAY: Effects with CameraXViewfinder
  *
- * KEY FINDING: CameraXViewfinder with EMBEDDED mode is a TRUE composable
- * that participates in Compose's graphics layer. This enables effects that
- * are IMPOSSIBLE with PreviewView:
+ * EFFECT SUPPORT BY MODE:
+ *  - EXTERNAL (SurfaceView): Only Clip works — hardware overlay ignores other effects
+ *  - EMBEDDED (TextureView): The demonstrated effects work — blur, alpha, rotation, RenderEffect
  *
- *  - Clip: Works in all modes (same as PreviewView)
- *  - Blur: ONLY works with CameraXViewfinder + EMBEDDED mode!
+ * This mirrors PreviewView's PERFORMANCE / COMPATIBLE behavior: COMPATIBLE mode
+ * supports the same visual effects. The advantage of CameraXViewfinder isn't effect
+ * support — it's architecture:
+ *  - PreviewView = View lifecycle inside Compose (two systems)
+ *  - CameraXViewfinder = Native composable (one system, idiomatic Compose)
  *
- * PreviewView can NEVER do blur - even in TextureView/COMPATIBLE mode -
- * because it's still a View, not a true composable.
- *
- * This is the fundamental architectural difference:
- *  - PreviewView = View wrapped in Compose (foreign object)
- *  - CameraXViewfinder EMBEDDED = True composable (native citizen)
+ * Compare with: legacy/LegacyEffectsPreview.kt for the PreviewView equivalent.
  */
 
 enum class EffectType(val label: String) {
