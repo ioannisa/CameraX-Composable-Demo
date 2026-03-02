@@ -4,14 +4,14 @@
 
 [![Android](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.0-blue.svg)](https://kotlinlang.org)
-[![CameraX](https://img.shields.io/badge/CameraX-1.5.3-orange.svg)](https://developer.android.com/jetpack/androidx/releases/camera)
+[![CameraX](https://img.shields.io/badge/CameraX-1.6.0-rc01-orange.svg)](https://developer.android.com/jetpack/androidx/releases/camera)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-2026.01-blueviolet.svg)](https://developer.android.com/jetpack/compose)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ---
 
 **Companion repository for:**
-- **Article**: [Goodbye AndroidView: CameraX Goes Full Compose](https://proandroiddev.com/goodbye-androidview-camerax-goes-full-compose-4d21ca234c4e)
+- **Article**: [Compose-Native CameraX in 2026: The Complete Guide](https://proandroiddev.com/compose-native-camerax-in-2026-the-complete-guide-bf36c76a78e9)
 - **Presentation**: *"CameraX Goes Compose"* — Droidcon 2025
 
 ---
@@ -208,7 +208,7 @@ Works in portrait. Works in landscape. Works on tablets. Works on foldables. Wor
 
 ```kotlin
 // build.gradle.kts
-val cameraxVersion = "1.5.3"
+val cameraxVersion = "1.6.0-rc01"
 
 dependencies {
     implementation("androidx.camera:camera-core:$cameraxVersion")
