@@ -4,7 +4,7 @@
 
 [![Android](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.0-blue.svg)](https://kotlinlang.org)
-[![CameraX](https://img.shields.io/badge/CameraX-1.6.0-rc01-orange.svg)](https://developer.android.com/jetpack/androidx/releases/camera)
+[![CameraX](https://img.shields.io/badge/CameraX-1.6.0-orange.svg)](https://developer.android.com/jetpack/androidx/releases/camera)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-2026.01-blueviolet.svg)](https://developer.android.com/jetpack/compose)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
