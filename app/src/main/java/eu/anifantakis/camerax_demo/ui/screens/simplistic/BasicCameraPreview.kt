@@ -18,38 +18,50 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
- * Basic CameraX Preview - Minimal Example
+ * MODERN APPROACH: The Declarative Paradigm Shift
  *
- * This is a simplified, self-contained composable that demonstrates
- * the core CameraX + Compose pattern without ViewModel abstraction.
+ * This demonstrates the modern CameraX + Compose integration.
+ * Notice the complete absence of `AndroidView` or `PreviewView`.
  *
- * Key concepts:
- *  1. STATE SETUP: MutableStateFlow REQUIRES an initial value. We start null.
- *  2. CAMERAX BINDING: awaitInstance() is the coroutine-friendly API (1.4+)
- *  3. SURFACE PROVIDER: Publishes requests to StateFlow instead of giving CameraX a View
- *  4. RENDER: CameraXViewfinder consumes the request and renders frames
+ * THE BIG DIFFERENCE:
+ * Instead of imperatively saying, "Here is an Android View, please draw on it,"
+ * we use a reactive state flow:
+ * 1. We ask CameraX for a stream of video.
+ * 2. CameraX provides a [SurfaceRequest] (a state object).
+ * 3. Compose reacts to that state and feeds it into [CameraXViewfinder].
  *
- * No AndroidView. No PreviewView. Just standard Compose patterns.
+ * Note: While this removes the AndroidView boilerplate, this specific all-in-one
+ * component still binds the camera to the Activity's lifecycle. For true
+ * separation of concerns, see `NativeCameraPreview` below.
  */
 @Composable
 fun BasicCameraPreview() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    // 1. Setup reactive state to hold the incoming surface requests
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
+    // 2. Coroutine-friendly initialization and wiring of the camera
     LaunchedEffect(Unit) {
         val cameraProvider = ProcessCameraProvider.awaitInstance(context)
+
         val preview = Preview.Builder().build().apply {
+            // Instead of giving a View, we publish the request to our StateFlow
             setSurfaceProvider { req -> surfaceRequests.value = req }
         }
+
         cameraProvider.bindToLifecycle(
             lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview
         )
     }
 
+    // 3. Reactively render the Viewfinder only when we have a valid request
     surfaceRequest?.let {
-        CameraXViewfinder(surfaceRequest = it, modifier = Modifier.fillMaxSize())
+        CameraXViewfinder(
+            surfaceRequest = it,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
