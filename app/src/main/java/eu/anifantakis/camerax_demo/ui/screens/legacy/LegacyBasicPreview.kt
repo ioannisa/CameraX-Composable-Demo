@@ -15,96 +15,92 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 
 /**
- * LEGACY: Basic CameraX Preview using AndroidView + PreviewView
+ * LEGACY APPROACH: The Missing Composable Teardown
  *
- * THE OLD WAY (Imperative):
- *  - Create a PreviewView (Android View)
- *  - Wrap it in AndroidView composable
- *  - Hand off the surface provider to CameraX
+ * This demonstrates the older, imperative way of wiring CameraX using [AndroidView].
  *
- * PROBLEMS WITH THIS APPROACH:
- *  1. View island inside Compose - different lifecycle, different paradigm
- *  2. PreviewView is a black box - can't clip, blur, or animate like Compose
- *  3. Manual coordination between View and Compose systems
- *  4. Imperative hand-off: "Here's a View, CameraX draw on it"
+ * THE LIFECYCLE MISMATCH:
+ * Here, the camera is bound to the [LocalLifecycleOwner] (usually the Activity or Fragment).
+ * CameraX automatically handles starting and stopping the camera based on *that* native lifecycle.
  *
- * Compare with: simplistic/BasicCameraPreview.kt for the new declarative way
+ * However, because there is no explicit Compose cleanup, if this Composable is removed
+ * from the UI tree (e.g., navigating to another screen), the camera keeps running in the
+ * background until the Activity itself is destroyed.
  *
- *
- *
- *
- *
- *
- *   How lifecycle is handled:
- *
- *   It isn't handled by you at all. It was delegated entirely to CameraX. When you call:
- *   cameraProvider.bindToLifecycle(lifecycleOwner, ...)
- *
- *   CameraX registers an observer on the lifecycleOwner. That observer:
- *   - starts the camera on ON_START/ON_RESUME
- *   - stops it on ON_STOP/ON_PAUSE
- *   - unbinds all use cases on ON_DESTROY
- *
- *   So the camera does get cleaned up — but only when the Activity/Fragment is destroyed, not when the composable is removed
- *   from the tree.
- *
- *   Compare with: `LegacyBasicPreviewLifecycle.kt` for an approach that uses DisposableEffect to handle cleanup when the composable leaves the tree.
+ * Compare with:
+ * - `LegacyBasicPreviewLifecycle.kt` to see how to fix this by explicitly unbinding.
+ * - `simplistic/BasicCameraPreview.kt` for the modern, declarative Compose way.
  */
-
 @Composable
 fun LegacyBasicPreview() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Allocate a PreviewView once and keep the same instance across recompositions.
-    // PreviewView is an Android View that holds a SurfaceView/TextureView internally;
-    // CameraX will render camera frames directly into that native surface.
+    // 1. Imperatively instantiate the legacy View
     val previewView = remember { PreviewView(context) }
 
-    // LaunchedEffect runs once when `previewView` enters composition (key never changes
-    // because `previewView` is a stable `remember`-ed instance).  It launches a
-    // coroutine on the Main dispatcher, which is where the CameraX listener callback
-    // must also run.
     LaunchedEffect(previewView) {
-        // ProcessCameraProvider is a singleton that manages camera hardware access.
-        // getInstance() returns a ListenableFuture; the result is delivered via a listener
-        // on the main executor once the provider is ready.
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
 
-            // Build a Preview use case with default settings (resolution, aspect ratio, etc.).
+            // 2. Imperatively wire the View's surface to the CameraX use case
             val preview = Preview.Builder().build()
-
-            // IMPERATIVE HAND-OFF:
-            // Tell CameraX which surface to draw frames onto.
-            // previewView.surfaceProvider is the bridge between the camera pipeline
-            // and the native surface that PreviewView manages internally.
             preview.surfaceProvider = previewView.surfaceProvider
 
-            // Unbind any previously bound use cases before rebinding, to avoid
-            // "use case already bound" exceptions on recomposition or config changes.
+            // Best practice: unbind before rebinding
             cameraProvider.unbindAll()
 
-            // Bind the Preview use case to the lifecycle owner.
-            // CameraX will automatically:
-            //   - Start the camera when the owner reaches ON_START / ON_RESUME
-            //   - Stop  the camera when the owner reaches ON_STOP  / ON_PAUSE
-            //   - Unbind all use cases when the owner reaches ON_DESTROY
-            // This is the only lifecycle management in this version — no explicit cleanup.
-            cameraProvider.bindToLifecycle(
-                lifecycleOwner,
-                CameraSelector.DEFAULT_BACK_CAMERA,
-                preview
-            )
+            // 3. Bind the camera to the lifecycle manually
+            cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview)
         }, ContextCompat.getMainExecutor(context))
     }
 
-    // THE VIEW ISLAND: embed the legacy PreviewView inside the Compose hierarchy.
-    // `factory` is called once to create the View; `update` (omitted here) would be
-    // called on recomposition.  The View fills all available space via the modifier.
+    // 4. Embed the legacy PreviewView inside the Compose hierarchy
     AndroidView(
         factory = { previewView },
         modifier = Modifier.fillMaxSize()
+    )
+}
+
+
+
+/**
+ * CONCISE LEGACY APPROACH: Cleaner Syntax, Same Lifecycle Mismatch
+ *
+ * This version neatly packs all the imperative setup into the [AndroidView] factory,
+ * avoiding the need to juggle `remember` and `LaunchedEffect`.
+ *
+ * Note: Just like the version above, this relies solely on the Activity/Fragment lifecycle.
+ * It does NOT clean up the camera when the Composable leaves the screen.
+ */
+@Composable
+fun LegacyBasicPreviewConcise() {
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { context ->
+            // 1. Imperatively instantiate the legacy View
+            val previewView = PreviewView(context)
+
+            // 2. Imperatively wire the View's surface to the CameraX use case
+            val previewUseCase = Preview.Builder().build()
+            previewUseCase.surfaceProvider = previewView.surfaceProvider
+
+            // 3. Bind the camera to the lifecycle manually
+            val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+            cameraProviderFuture.addListener({
+                val cameraProvider = cameraProviderFuture.get()
+
+                // Best practice: unbind before rebinding
+                cameraProvider.unbindAll()
+
+                cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, previewUseCase)
+            }, ContextCompat.getMainExecutor(context))
+
+            // 4. Return the View to be embedded
+            previewView
+        }
     )
 }
