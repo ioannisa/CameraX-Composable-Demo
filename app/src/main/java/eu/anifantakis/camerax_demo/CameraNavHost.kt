@@ -59,7 +59,9 @@ import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacySessionConfigPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.Media3Preview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.SessionConfigPreview
 import eu.anifantakis.camerax_demo.ui.screens.realistic.media3.Media3Screen
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.AntiPatternToggleDemo
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.BasicCameraPreview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.FixedToggleDemo
 
 // Routes for Simplistic examples
 sealed class SimplisticRoute(val path: String) {
@@ -79,6 +81,8 @@ sealed class SimplisticRoute(val path: String) {
     data object LensSelection : SimplisticRoute("simplistic_lens_selection")
     data object Media3 : SimplisticRoute("simplistic_media3")
     data object SessionConfig : SimplisticRoute("simplistic_session_config")
+    data object AntiPatternToggle : SimplisticRoute("simplistic_anti_pattern_toggle")
+    data object FixedToggle : SimplisticRoute("simplistic_fixed_toggle")
 }
 
 // Routes for Realistic examples
@@ -204,6 +208,8 @@ private fun SimplisticNavHost(modifier: Modifier = Modifier) {
         composable(SimplisticRoute.LensSelection.path) { LensSelectionPreview() }
         composable(SimplisticRoute.Media3.path) { Media3Preview() }
         composable(SimplisticRoute.SessionConfig.path) { SessionConfigPreview() }
+        composable(SimplisticRoute.AntiPatternToggle.path) { AntiPatternToggleDemo() }
+        composable(SimplisticRoute.FixedToggle.path) { FixedToggleDemo() }
     }
 }
 
