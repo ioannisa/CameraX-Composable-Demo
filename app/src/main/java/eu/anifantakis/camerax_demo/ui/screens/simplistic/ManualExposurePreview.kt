@@ -6,7 +6,6 @@ import android.util.Range
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.compose.CameraXViewfinder
-import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.core.SurfaceRequest
@@ -74,9 +73,6 @@ fun ManualExposurePreview() {
     // Camera ranges (will be populated from camera characteristics)
     var isoRange by remember { mutableStateOf<Range<Int>?>(null) }
     var exposureTimeRange by remember { mutableStateOf<Range<Long>?>(null) }
-
-    // Camera reference for reading characteristics
-    var camera by remember { mutableStateOf<Camera?>(null) }
 
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
@@ -146,8 +142,6 @@ fun ManualExposurePreview() {
             CameraSelector.DEFAULT_BACK_CAMERA,
             preview
         )
-
-        camera = boundCamera
 
         // Get camera characteristics to determine valid ranges
         val camera2Info = Camera2CameraInfo.from(boundCamera.cameraInfo)

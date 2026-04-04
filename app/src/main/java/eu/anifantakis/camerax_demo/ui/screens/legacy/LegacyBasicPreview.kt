@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
  * background until the Activity itself is destroyed.
  *
  * Compare with:
- * - `LegacyBasicPreviewLifecycle.kt` to see how to fix this by explicitly unbinding.
+ * - `LegacyBasicPreviewDisposable.kt` to see how to fix this by explicitly unbinding.
  * - `simplistic/BasicCameraPreview.kt` for the modern, declarative Compose way.
  */
 @Composable
