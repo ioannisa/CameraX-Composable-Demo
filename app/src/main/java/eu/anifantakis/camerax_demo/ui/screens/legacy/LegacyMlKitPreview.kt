@@ -88,13 +88,13 @@ fun LegacyMlKitPreview() {
 
     // Rebind camera when effect or camera changes
     DisposableEffect(selectedEffect, cameraSelector) {
+        val preview = Preview.Builder().build().apply {
+            surfaceProvider = previewView.surfaceProvider
+        }
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
             val provider = cameraProviderFuture.get()
-
-            val preview = Preview.Builder().build().apply {
-                surfaceProvider = previewView.surfaceProvider
-            }
 
             val imageAnalysis = ImageAnalysis.Builder()
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -187,6 +187,7 @@ fun LegacyMlKitPreview() {
 
         onDispose {
             ProcessCameraProvider.getInstance(context).get().unbindAll()
+            preview.surfaceProvider = null
         }
     }
 

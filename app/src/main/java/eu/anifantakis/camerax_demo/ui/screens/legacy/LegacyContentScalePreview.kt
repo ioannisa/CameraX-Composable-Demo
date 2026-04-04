@@ -68,12 +68,12 @@ fun LegacyContentScalePreview() {
     val previewView = remember { PreviewView(context) }
 
     DisposableEffect(previewView) {
+        val preview = Preview.Builder().build()
+        preview.surfaceProvider = previewView.surfaceProvider
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
             val provider = cameraProviderFuture.get()
-
-            val preview = Preview.Builder().build()
-            preview.surfaceProvider = previewView.surfaceProvider
 
             provider.unbindAll()
             provider.bindToLifecycle(
@@ -85,6 +85,7 @@ fun LegacyContentScalePreview() {
 
         onDispose {
             ProcessCameraProvider.getInstance(context).get().unbindAll()
+            preview.surfaceProvider = null
         }
     }
 

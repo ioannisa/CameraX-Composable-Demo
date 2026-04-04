@@ -194,9 +194,11 @@ class Media3ViewModel(app: Application) : AndroidViewModel(app) {
 
     // ── Cleanup ──────────────────────────────────────────────────
 
-    /** Explicitly unbind all camera use cases. Called when the screen leaves composition. */
+    /** Explicitly unbind all camera use cases and release player. Called when the screen leaves composition. */
     fun unbindCamera() {
         cameraProvider?.unbindAll()
+        player.value?.release()
+        player.value = null
     }
 
     override fun onCleared() {

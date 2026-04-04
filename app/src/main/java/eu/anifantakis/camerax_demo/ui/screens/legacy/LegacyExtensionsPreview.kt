@@ -141,6 +141,9 @@ fun LegacyExtensionsPreview() {
     // Rebind camera whenever the selected lens or mode changes.
     // CameraX 1.6: Use ExtensionSessionConfig instead of swapping CameraSelectors.
     DisposableEffect(selectedLens, selectedMode) {
+        val preview = Preview.Builder().build()
+        preview.surfaceProvider = previewView.surfaceProvider
+
         val lens = selectedLens
         if (lens != null) {
             val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
@@ -150,9 +153,6 @@ fun LegacyExtensionsPreview() {
                 extensionsManagerFuture.addListener({
                     val extensionsManager = extensionsManagerFuture.get()
                     val baseSelector = buildCameraSelectorForId(lens.cameraId)
-
-                    val preview = Preview.Builder().build()
-                    preview.surfaceProvider = previewView.surfaceProvider
 
                     val imgCapture = ImageCapture.Builder()
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
@@ -181,6 +181,7 @@ fun LegacyExtensionsPreview() {
 
         onDispose {
             ProcessCameraProvider.getInstance(context).get().unbindAll()
+            preview.surfaceProvider = null
         }
     }
 

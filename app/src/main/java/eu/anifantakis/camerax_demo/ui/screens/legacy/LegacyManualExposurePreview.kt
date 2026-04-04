@@ -100,6 +100,8 @@ fun LegacyManualExposurePreview() {
 
     // Rebind camera when exposure values change
     DisposableEffect(isoValue, shutterValue) {
+        var preview: Preview? = null
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
@@ -132,9 +134,10 @@ fun LegacyManualExposurePreview() {
                 )
             }
 
-            val preview = previewBuilder.build()
-            // Legacy approach: set surface provider on PreviewView
-            preview.surfaceProvider = previewView.surfaceProvider
+            preview = previewBuilder.build().also {
+                // Legacy approach: set surface provider on PreviewView
+                it.surfaceProvider = previewView.surfaceProvider
+            }
 
             cameraProvider.unbindAll()
             val boundCamera = cameraProvider.bindToLifecycle(
@@ -162,6 +165,7 @@ fun LegacyManualExposurePreview() {
 
         onDispose {
             ProcessCameraProvider.getInstance(context).get().unbindAll()
+            preview?.surfaceProvider = null
         }
     }
 

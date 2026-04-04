@@ -49,7 +49,7 @@ fun BasicCameraPreview() {
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(Unit) {
         var cameraProvider: ProcessCameraProvider? = null
 
         val preview = Preview.Builder().build().apply {

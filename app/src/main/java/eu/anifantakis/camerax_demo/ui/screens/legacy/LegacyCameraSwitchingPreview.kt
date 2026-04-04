@@ -63,13 +63,13 @@ fun LegacyCameraSwitchingPreview() {
     // DisposableEffect to handle rebinding when selector changes
     // This is the imperative coordination dance
     DisposableEffect(selector) {
+        val preview = Preview.Builder().build()
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
             val provider = cameraProviderFuture.get()
             cameraProvider = provider
-
-            val preview = Preview.Builder().build()
-            preview.setSurfaceProvider(previewView.surfaceProvider)
 
             // Must unbind before rebinding with new selector
             provider.unbindAll()
@@ -78,6 +78,7 @@ fun LegacyCameraSwitchingPreview() {
 
         onDispose {
             cameraProvider?.unbindAll()
+            preview.surfaceProvider = null
         }
     }
 

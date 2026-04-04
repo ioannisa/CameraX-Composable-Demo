@@ -57,13 +57,13 @@ fun LegacyTapToFocusPreview() {
     var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
 
     DisposableEffect(Unit) {
+        val preview = Preview.Builder().build()
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
             val provider = cameraProviderFuture.get()
             cameraProvider = provider
-
-            val preview = Preview.Builder().build()
-            preview.setSurfaceProvider(previewView.surfaceProvider)
 
             provider.unbindAll()
             val cam = provider.bindToLifecycle(
@@ -81,6 +81,7 @@ fun LegacyTapToFocusPreview() {
 
         onDispose {
             cameraProvider?.unbindAll()
+            preview.surfaceProvider = null
         }
     }
 

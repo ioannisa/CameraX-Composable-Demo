@@ -76,15 +76,15 @@ fun LegacyLensSelectionPreview() {
 
     // Rebind camera when selected lens changes
     DisposableEffect(selectedLens) {
+        val preview = Preview.Builder().build()
+        preview.surfaceProvider = previewView.surfaceProvider
+
         val lens = selectedLens
         if (lens != null) {
             val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
             cameraProviderFuture.addListener({
                 val cameraProvider = cameraProviderFuture.get()
                 val cameraSelector = buildCameraSelectorForId(lens.cameraId)
-
-                val preview = Preview.Builder().build()
-                preview.surfaceProvider = previewView.surfaceProvider
 
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
@@ -93,6 +93,7 @@ fun LegacyLensSelectionPreview() {
 
         onDispose {
             ProcessCameraProvider.getInstance(context).get().unbindAll()
+            preview.surfaceProvider = null
         }
     }
 

@@ -103,12 +103,12 @@ fun LegacySessionConfigPreview() {
         recording?.stop()
         recording = null
 
+        val preview = Preview.Builder().build()
+        preview.surfaceProvider = previewView.surfaceProvider
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
             val provider = cameraProviderFuture.get()
-
-            val preview = Preview.Builder().build()
-            preview.surfaceProvider = previewView.surfaceProvider
 
             when (selectedMode) {
                 LegacyCaptureMode.Photo -> {
@@ -157,6 +157,7 @@ fun LegacySessionConfigPreview() {
 
         onDispose {
             ProcessCameraProvider.getInstance(context).get().unbindAll()
+            preview.surfaceProvider = null
         }
     }
 

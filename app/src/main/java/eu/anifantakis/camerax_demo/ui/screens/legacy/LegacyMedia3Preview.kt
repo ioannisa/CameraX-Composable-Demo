@@ -88,13 +88,13 @@ fun LegacyMedia3Preview() {
 
     // Legacy camera binding via DisposableEffect + callback
     DisposableEffect(Unit) {
+        val preview = Preview.Builder().build()
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
             val provider = cameraProviderFuture.get()
             cameraProvider = provider
-
-            val preview = Preview.Builder().build()
-            preview.setSurfaceProvider(previewView.surfaceProvider)
 
             val recorder = Recorder.Builder()
                 .setQualitySelector(QualitySelector.from(Quality.HD))
@@ -115,6 +115,7 @@ fun LegacyMedia3Preview() {
         onDispose {
             recording?.stop()
             cameraProvider?.unbindAll()
+            preview.surfaceProvider = null
             player?.release()
         }
     }

@@ -60,12 +60,12 @@ fun LegacyAdaptivePreview() {
     val previewView = remember { PreviewView(context) }
 
     DisposableEffect(Unit) {
+        val preview = Preview.Builder().build()
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
             val provider = cameraProviderFuture.get()
-
-            val preview = Preview.Builder().build()
-            preview.setSurfaceProvider(previewView.surfaceProvider)
 
             provider.unbindAll()
             provider.bindToLifecycle(
@@ -77,6 +77,7 @@ fun LegacyAdaptivePreview() {
 
         onDispose {
             ProcessCameraProvider.getInstance(context).get().unbindAll()
+            preview.surfaceProvider = null
         }
     }
 

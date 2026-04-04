@@ -64,14 +64,14 @@ fun LegacyPhotoVideoCapturePreview() {
     var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
 
     DisposableEffect(Unit) {
+        // Build all use cases
+        val preview = Preview.Builder().build()
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
             val provider = cameraProviderFuture.get()
             cameraProvider = provider
-
-            // Build all use cases
-            val preview = Preview.Builder().build()
-            preview.setSurfaceProvider(previewView.surfaceProvider)
 
             val imgCapture = ImageCapture.Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
@@ -97,6 +97,7 @@ fun LegacyPhotoVideoCapturePreview() {
         onDispose {
             recording?.stop()
             cameraProvider?.unbindAll()
+            preview.surfaceProvider = null
         }
     }
 
