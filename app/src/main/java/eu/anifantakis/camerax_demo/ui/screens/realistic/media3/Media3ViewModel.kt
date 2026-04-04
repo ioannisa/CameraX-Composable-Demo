@@ -57,6 +57,9 @@ class Media3ViewModel(app: Application) : AndroidViewModel(app) {
     private val appContext = app.applicationContext
     private val mainExecutor get() = ContextCompat.getMainExecutor(appContext)
 
+    /** Cached reference for cleanup in [unbindCamera] and [onCleared]. */
+    private var cameraProvider: ProcessCameraProvider? = null
+
     private var videoCapture: VideoCapture<Recorder>? = null
     private var recording: Recording? = null
     private var rawFile: File? = null
@@ -67,6 +70,7 @@ class Media3ViewModel(app: Application) : AndroidViewModel(app) {
     fun bindCamera(lifecycleOwner: LifecycleOwner) {
         viewModelScope.launch {
             val provider = ProcessCameraProvider.awaitInstance(getApplication())
+            cameraProvider = provider
 
             val preview = Preview.Builder().build().apply {
                 setSurfaceProvider { req -> surfaceRequest.value = req }
@@ -188,10 +192,16 @@ class Media3ViewModel(app: Application) : AndroidViewModel(app) {
         screenState.value = Media3ScreenState.Camera
     }
 
-    // ── Lifecycle ─────────────────────────────────────────────────
+    // ── Cleanup ──────────────────────────────────────────────────
+
+    /** Explicitly unbind all camera use cases. Called when the screen leaves composition. */
+    fun unbindCamera() {
+        cameraProvider?.unbindAll()
+    }
 
     override fun onCleared() {
         super.onCleared()
+        cameraProvider?.unbindAll()
         player.value?.release()
         rawFile?.delete()
         processedFile?.delete()

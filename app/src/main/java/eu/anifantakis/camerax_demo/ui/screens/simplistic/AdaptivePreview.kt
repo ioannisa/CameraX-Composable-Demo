@@ -19,9 +19,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -32,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.anifantakis.camerax_demo.ui.screens.realistic.DevicePosture
 import eu.anifantakis.camerax_demo.ui.screens.realistic.rememberDevicePosture
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Foldables & Adaptive UIs — Simplistic Example
@@ -53,18 +55,30 @@ fun AdaptivePreview() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    val scope = rememberCoroutineScope()
+
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        val cameraProvider = ProcessCameraProvider.awaitInstance(context)
+    DisposableEffect(Unit) {
+        var cameraProvider: ProcessCameraProvider? = null
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequests.value = req }
         }
-        cameraProvider.unbindAll()
-        cameraProvider.bindToLifecycle(
-            lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview
-        )
+
+        val job = scope.launch {
+            cameraProvider = ProcessCameraProvider.awaitInstance(context)
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview
+            )
+        }
+
+        onDispose {
+            job.cancel()
+            cameraProvider?.unbind(preview)
+            preview.surfaceProvider = null
+        }
     }
 
     val posture = rememberDevicePosture()

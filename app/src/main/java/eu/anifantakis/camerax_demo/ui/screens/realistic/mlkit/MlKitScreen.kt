@@ -18,7 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -62,9 +62,10 @@ fun MlKitScreen() {
     val imageHeight by vm.analysisImageHeight.collectAsStateWithLifecycle()
     val rotation by vm.analysisRotation.collectAsStateWithLifecycle()
 
-    // (Re)bind whenever the selected effect or camera changes.
-    LaunchedEffect(selectedEffect, cameraSelector) {
+    // (Re)bind whenever the selected effect or camera changes. Unbind on leave.
+    DisposableEffect(selectedEffect, cameraSelector) {
         vm.bindWithEffect(lifecycleOwner, selectedEffect, cameraSelector)
+        onDispose { vm.unbindCamera() }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {

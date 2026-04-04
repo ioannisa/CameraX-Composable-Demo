@@ -40,10 +40,12 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +56,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * NEW WAY: SessionConfig demo with CameraXViewfinder
@@ -97,6 +100,8 @@ fun SessionConfigPreview() {
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var videoCapture by remember { mutableStateOf<VideoCapture<Recorder>?>(null) }
     var recording by remember { mutableStateOf<Recording?>(null) }
+    val scope = rememberCoroutineScope()
+
     var cameraInfo by remember { mutableStateOf<CameraInfo?>(null) }
 
     // Feature group support results
@@ -105,52 +110,62 @@ fun SessionConfigPreview() {
     // Rebind camera whenever the selected mode changes
     // SessionConfig replaces the old unbindAll()/rebind pattern:
     // just bind a new SessionConfig and CameraX handles the transition.
-    LaunchedEffect(selectedMode) {
+    DisposableEffect(selectedMode) {
+        var provider: ProcessCameraProvider? = null
+
         // Stop any active recording before switching modes
         recording?.stop()
         recording = null
-
-        val provider = ProcessCameraProvider.awaitInstance(context)
 
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequests.value = req }
         }
 
-        when (selectedMode) {
-            CaptureMode.Photo -> {
-                val imgCapture = ImageCapture.Builder()
-                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                    .build()
+        val job = scope.launch {
+            provider = ProcessCameraProvider.awaitInstance(context)
 
-                // SessionConfig replaces unbindAll() + bindToLifecycle(preview, imageCapture)
-                // Rebinding implicitly unbinds the previous session. No unbindAll() needed.
-                val camera = provider.bindToLifecycle(
-                    lifecycleOwner,
-                    CameraSelector.DEFAULT_BACK_CAMERA,
-                    SessionConfig(useCases = listOf(preview, imgCapture))
-                )
+            when (selectedMode) {
+                CaptureMode.Photo -> {
+                    val imgCapture = ImageCapture.Builder()
+                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                        .build()
 
-                imageCapture = imgCapture
-                videoCapture = null
-                cameraInfo = camera.cameraInfo
+                    // SessionConfig replaces unbindAll() + bindToLifecycle(preview, imageCapture)
+                    // Rebinding implicitly unbinds the previous session. No unbindAll() needed.
+                    val camera = provider?.bindToLifecycle(
+                        lifecycleOwner,
+                        CameraSelector.DEFAULT_BACK_CAMERA,
+                        SessionConfig(useCases = listOf(preview, imgCapture))
+                    )
+
+                    imageCapture = imgCapture
+                    videoCapture = null
+                    cameraInfo = camera?.cameraInfo
+                }
+                CaptureMode.Video -> {
+                    val recorder = Recorder.Builder()
+                        .setQualitySelector(QualitySelector.from(Quality.FHD))
+                        .build()
+                    val vidCapture = VideoCapture.withOutput(recorder)
+
+                    // SessionConfig replaces unbindAll() + bindToLifecycle(preview, videoCapture)
+                    val camera = provider?.bindToLifecycle(
+                        lifecycleOwner,
+                        CameraSelector.DEFAULT_BACK_CAMERA,
+                        SessionConfig(useCases = listOf(preview, vidCapture))
+                    )
+
+                    imageCapture = null
+                    videoCapture = vidCapture
+                    cameraInfo = camera?.cameraInfo
+                }
             }
-            CaptureMode.Video -> {
-                val recorder = Recorder.Builder()
-                    .setQualitySelector(QualitySelector.from(Quality.FHD))
-                    .build()
-                val vidCapture = VideoCapture.withOutput(recorder)
+        }
 
-                // SessionConfig replaces unbindAll() + bindToLifecycle(preview, videoCapture)
-                val camera = provider.bindToLifecycle(
-                    lifecycleOwner,
-                    CameraSelector.DEFAULT_BACK_CAMERA,
-                    SessionConfig(useCases = listOf(preview, vidCapture))
-                )
-
-                imageCapture = null
-                videoCapture = vidCapture
-                cameraInfo = camera.cameraInfo
-            }
+        onDispose {
+            job.cancel()
+            provider?.unbindAll()
+            preview.surfaceProvider = null
         }
     }
 

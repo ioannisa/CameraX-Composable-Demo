@@ -80,6 +80,9 @@ class CameraViewModel(app: Application) : AndroidViewModel(app) {
     private val appContext = app.applicationContext
     private val mainExecutor: Executor get() = ContextCompat.getMainExecutor(appContext)
 
+    /** Cached reference for cleanup in [unbindCamera] and [onCleared]. */
+    private var cameraProvider: ProcessCameraProvider? = null
+
     // FYI: Old-school way to await a ListenableFuture provider. Left for reference.
     private suspend fun provider_old(): ProcessCameraProvider =
         suspendCancellableCoroutine { cont ->
@@ -111,6 +114,7 @@ class CameraViewModel(app: Application) : AndroidViewModel(app) {
     ) {
         viewModelScope.launch {
             val provider = provider()
+            cameraProvider = provider
 
             val preview = Preview.Builder().build().apply {
                 // CameraX will call this whenever it needs a surface to draw into.
@@ -142,6 +146,7 @@ class CameraViewModel(app: Application) : AndroidViewModel(app) {
     ) {
         viewModelScope.launch {
             val provider = provider()
+            cameraProvider = provider
 
             val preview = Preview.Builder().build().apply {
                 setSurfaceProvider { req -> surfaceRequest.value = req }
@@ -163,6 +168,18 @@ class CameraViewModel(app: Application) : AndroidViewModel(app) {
             imageCapture.value = img
             videoCapture.value = vid
         }
+    }
+
+    // ---- Cleanup (called from DisposableEffect.onDispose) ---------------------------------------
+
+    /** Explicitly unbind all camera use cases. Called when the screen leaves composition. */
+    fun unbindCamera() {
+        cameraProvider?.unbindAll()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        cameraProvider?.unbindAll()
     }
 
     // ---- User interactions (focus/zoom) --------------------------------------------------------

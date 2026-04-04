@@ -15,10 +15,11 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -26,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -57,21 +59,33 @@ fun TapToFocusPreview() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    val scope = rememberCoroutineScope()
+
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
     // Store camera reference for focus control
     var camera by remember { mutableStateOf<Camera?>(null) }
 
-    LaunchedEffect(Unit) {
-        val cameraProvider = ProcessCameraProvider.awaitInstance(context)
+    DisposableEffect(Unit) {
+        var cameraProvider: ProcessCameraProvider? = null
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequests.value = req }
         }
-        cameraProvider.unbindAll()
-        camera = cameraProvider.bindToLifecycle(
-            lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview
-        )
+
+        val job = scope.launch {
+            cameraProvider = ProcessCameraProvider.awaitInstance(context)
+            cameraProvider.unbindAll()
+            camera = cameraProvider.bindToLifecycle(
+                lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview
+            )
+        }
+
+        onDispose {
+            job.cancel()
+            cameraProvider?.unbind(preview)
+            preview.surfaceProvider = null
+        }
     }
 
     // THE MAGIC: MutableCoordinateTransformer

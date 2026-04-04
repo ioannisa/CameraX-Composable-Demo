@@ -22,21 +22,23 @@ import kotlinx.coroutines.launch
 /**
  * MODERN APPROACH: Declarative + Explicit Lifecycle Management
  *
- * This builds on [BasicCameraPreview] by adding proper Compose lifecycle cleanup
- * via [DisposableEffect]. Without this, the camera stays bound to the Activity's
- * lifecycle and keeps running even after this Composable leaves the UI tree.
+ * This builds on [BasicCameraPreviewLaunchedEffect] by adding proper Compose lifecycle cleanup
+ * via [DisposableEffect]. Without this, camera use cases remain bound in a stopped state
+ * when the composable leaves the tree, relying on implicit NavBackStackEntry lifecycle
+ * behavior instead of explicit cleanup.
  *
  * THE FIX:
  * By using [DisposableEffect] instead of [LaunchedEffect], we get an [onDispose]
  * callback that fires when the Composable is removed from the tree. Inside it,
- * we explicitly unbind the camera and cancel any in-flight coroutine.
+ * we explicitly unbind the camera use cases and cancel any in-flight coroutine,
+ * ensuring a clean state regardless of which lifecycle owner is in use.
  *
  * Compare with:
- * - `BasicCameraPreview.kt` to see the version without explicit cleanup.
+ * - `BasicCameraPreviewLaunchedEffect.kt` to see the anti-pattern without explicit cleanup.
  * - `legacy/LegacyBasicPreviewDisposable.kt` for the same fix applied to the legacy AndroidView approach.
  */
 @Composable
-fun BasicCameraPreviewLifecycle() {
+fun BasicCameraPreview() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 

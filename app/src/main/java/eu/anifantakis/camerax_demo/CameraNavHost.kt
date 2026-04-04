@@ -39,7 +39,6 @@ import eu.anifantakis.camerax_demo.ui.screens.realistic.CaptureScreen
 import eu.anifantakis.camerax_demo.ui.screens.realistic.InteractivePreviewScreen
 import eu.anifantakis.camerax_demo.ui.screens.realistic.PreviewOnlyScreen
 import eu.anifantakis.camerax_demo.ui.screens.realistic.RealisticMenuScreen
-import eu.anifantakis.camerax_demo.ui.screens.simplistic.BasicCameraPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.CameraSwitchingPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.ContentScalePreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.SimplisticMenuScreen
@@ -60,6 +59,7 @@ import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacySessionConfigPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.Media3Preview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.SessionConfigPreview
 import eu.anifantakis.camerax_demo.ui.screens.realistic.media3.Media3Screen
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.BasicCameraPreview
 
 // Routes for Simplistic examples
 sealed class SimplisticRoute(val path: String) {

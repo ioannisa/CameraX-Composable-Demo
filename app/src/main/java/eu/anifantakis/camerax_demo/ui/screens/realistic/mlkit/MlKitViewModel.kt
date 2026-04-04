@@ -72,6 +72,9 @@ class MlKitViewModel(app: Application) : AndroidViewModel(app) {
 
     private val analysisExecutor = Executors.newSingleThreadExecutor()
 
+    /** Cached reference for cleanup in [unbindCamera] and [onCleared]. */
+    private var cameraProvider: ProcessCameraProvider? = null
+
     private suspend fun provider(): ProcessCameraProvider =
         ProcessCameraProvider.awaitInstance(getApplication())
 
@@ -96,6 +99,7 @@ class MlKitViewModel(app: Application) : AndroidViewModel(app) {
     ) {
         viewModelScope.launch {
             val provider = provider()
+            cameraProvider = provider
 
             val preview = Preview.Builder().build().apply {
                 setSurfaceProvider { req -> surfaceRequest.value = req }
@@ -118,6 +122,18 @@ class MlKitViewModel(app: Application) : AndroidViewModel(app) {
                 analysisRotation.value = info.rotationDegrees
             }
         }
+    }
+
+    // ── Cleanup ──────────────────────────────────────────────────────
+
+    /** Explicitly unbind all camera use cases. Called when the screen leaves composition. */
+    fun unbindCamera() {
+        cameraProvider?.unbindAll()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        cameraProvider?.unbindAll()
     }
 
     // ── Analyzer factory ─────────────────────────────────────────────

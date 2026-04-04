@@ -18,24 +18,33 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
- * MODERN APPROACH: The Declarative Paradigm Shift
+ * ==================================================================
+ * ******* ANTI-PATTERN: No Cleanup on Composition Exit *************
+ * ==================================================================
  *
- * This demonstrates the modern CameraX + Compose integration.
- * Notice the complete absence of `AndroidView` or `PreviewView`.
+ * This file demonstrates the WRONG way to bind CameraX in Compose.
+ * It uses [LaunchedEffect] which cancels its coroutine when the composable
+ * leaves the tree — but that does NOT unbind the camera use cases.
  *
- * THE BIG DIFFERENCE:
- * Instead of imperatively saying, "Here is an Android View, please draw on it,"
- * we use a reactive state flow:
- * 1. We ask CameraX for a stream of video.
- * 2. CameraX provides a [SurfaceRequest] (a state object).
- * 3. Compose reacts to that state and feeds it into [CameraXViewfinder].
+ * WHY IT APPEARS HARMLESS:
+ * In Compose Navigation, [LocalLifecycleOwner] is the NavBackStackEntry,
+ * not the Activity. When you navigate away, that lifecycle goes to STOPPED
+ * and CameraX automatically closes the camera hardware — so the green
+ * indicator light turns off and battery is not wasted.
  *
- * Note: While this removes the AndroidView boilerplate, this specific all-in-one
- * component still binds the camera to the Activity's lifecycle. For true
- * separation of concerns, see `NativeCameraPreview` below.
+ * WHY IT IS STILL WRONG:
+ * - The use cases remain **bound but stopped** inside ProcessCameraProvider,
+ *   holding memory and occupying binding slots on the back stack.
+ * - If the NavBackStackEntry resumes (user presses back), the camera reopens
+ *   with stale bindings instead of a clean state.
+ * - If [LocalLifecycleOwner] ever happens to be the Activity (not a
+ *   NavBackStackEntry), the camera truly would keep running in the background.
+ * - Relying on implicit lifecycle behavior rather than explicit cleanup is fragile.
+ *
+ * See [BasicCameraPreview] in `BasicCameraPreviewDisposable.kt` for the correct approach using [DisposableEffect].
  */
 @Composable
-fun BasicCameraPreview() {
+fun BasicCameraPreviewLaunchedEffect() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 

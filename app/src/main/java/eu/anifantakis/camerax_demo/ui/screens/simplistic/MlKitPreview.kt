@@ -24,11 +24,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,6 +51,7 @@ import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
 import eu.anifantakis.camerax_demo.ui.screens.mlkit.*
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 
 /**
@@ -75,6 +77,8 @@ fun MlKitPreview() {
     val cameraSelector =
         if (useFrontCamera) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
 
+    val scope = rememberCoroutineScope()
+
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
@@ -90,8 +94,8 @@ fun MlKitPreview() {
     var analysisRotation by remember { mutableIntStateOf(0) }
 
     // Rebind when effect or camera changes
-    LaunchedEffect(selectedEffect, cameraSelector) {
-        val cameraProvider = ProcessCameraProvider.awaitInstance(context)
+    DisposableEffect(selectedEffect, cameraSelector) {
+        var cameraProvider: ProcessCameraProvider? = null
 
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequests.value = req }
@@ -172,19 +176,29 @@ fun MlKitPreview() {
 
         imageAnalysis.setAnalyzer(analysisExecutor, analyzer)
 
-        cameraProvider.unbindAll()
-        cameraProvider.bindToLifecycle(
-            lifecycleOwner,
-            cameraSelector,
-            preview,
-            imageAnalysis
-        )
+        val job = scope.launch {
+            cameraProvider = ProcessCameraProvider.awaitInstance(context)
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner,
+                cameraSelector,
+                preview,
+                imageAnalysis
+            )
 
-        // Read actual analysis resolution after binding for coordinate transform
-        imageAnalysis.resolutionInfo?.let { info ->
-            analysisImageWidth = info.resolution.width
-            analysisImageHeight = info.resolution.height
-            analysisRotation = info.rotationDegrees
+            // Read actual analysis resolution after binding for coordinate transform
+            imageAnalysis.resolutionInfo?.let { info ->
+                analysisImageWidth = info.resolution.width
+                analysisImageHeight = info.resolution.height
+                analysisRotation = info.rotationDegrees
+            }
+        }
+
+        onDispose {
+            job.cancel()
+            imageAnalysis.clearAnalyzer()
+            cameraProvider?.unbindAll()
+            preview.surfaceProvider = null
         }
     }
 

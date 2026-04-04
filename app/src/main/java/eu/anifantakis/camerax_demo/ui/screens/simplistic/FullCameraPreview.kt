@@ -37,10 +37,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,6 +54,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Full Camera Preview - Combined Camera Switching + Photo/Video Capture
@@ -64,7 +66,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
  *
  * KEY CONCEPTS:
  *  1. When camera selector changes, ALL use cases must be rebound together
- *  2. LaunchedEffect(selector) triggers rebinding when switching cameras
+ *  2. DisposableEffect(selector) triggers rebinding when switching cameras and cleans up on dispose
  *  3. Use cases (Preview, ImageCapture, VideoCapture) share the same camera session
  *  4. rememberSaveable preserves camera choice across configuration changes
  *
@@ -87,6 +89,8 @@ fun FullCameraPreview() {
     else
         CameraSelector.DEFAULT_BACK_CAMERA
 
+    val scope = rememberCoroutineScope()
+
     // Capture references
     var camera by remember { mutableStateOf<Camera?>(null) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
@@ -94,8 +98,8 @@ fun FullCameraPreview() {
     var recording by remember { mutableStateOf<Recording?>(null) }
 
     // Rebind all use cases when camera selector changes
-    LaunchedEffect(cameraSelector) {
-        val provider = ProcessCameraProvider.awaitInstance(context)
+    DisposableEffect(cameraSelector) {
+        var provider: ProcessCameraProvider? = null
 
         // Stop any ongoing recording when switching cameras
         recording?.stop()
@@ -115,18 +119,28 @@ fun FullCameraPreview() {
             .build()
         val vidCapture = VideoCapture.withOutput(recorder)
 
-        // Unbind previous and rebind with new selector
-        provider.unbindAll()
-        camera = provider.bindToLifecycle(
-            lifecycleOwner,
-            cameraSelector,
-            preview,
-            imgCapture,
-            vidCapture
-        )
+        val job = scope.launch {
+            provider = ProcessCameraProvider.awaitInstance(context)
 
-        imageCapture = imgCapture
-        videoCapture = vidCapture
+            // Unbind previous and rebind with new selector
+            provider.unbindAll()
+            camera = provider.bindToLifecycle(
+                lifecycleOwner,
+                cameraSelector,
+                preview,
+                imgCapture,
+                vidCapture
+            )
+
+            imageCapture = imgCapture
+            videoCapture = vidCapture
+        }
+
+        onDispose {
+            job.cancel()
+            provider?.unbindAll()
+            preview.surfaceProvider = null
+        }
     }
 
     Box(Modifier.fillMaxSize()) {

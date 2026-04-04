@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -40,7 +40,10 @@ fun CaptureScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     // Bind all three use cases for this screen.
-    LaunchedEffect(Unit) { vm.bindCapture(lifecycleOwner) }
+    DisposableEffect(Unit) {
+        vm.bindCapture(lifecycleOwner)
+        onDispose { vm.unbindCamera() }
+    }
 
     val request by vm.surfaceRequest.collectAsStateWithLifecycle(initialValue = null)
     val recording by vm.recording.collectAsStateWithLifecycle()

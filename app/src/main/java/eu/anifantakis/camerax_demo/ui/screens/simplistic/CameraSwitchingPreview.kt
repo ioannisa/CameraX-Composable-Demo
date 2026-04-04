@@ -14,10 +14,11 @@ import androidx.compose.material.icons.rounded.Cameraswitch
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -27,13 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Camera Switching - Simplistic Example
  *
  * Key Insights:
- *  1. LaunchedEffect(selector) - When selector changes (front↔back),
- *     the effect re-runs and rebinds the camera.
+ *  1. DisposableEffect(selector) - When selector changes (front↔back),
+ *     the effect re-runs and rebinds the camera. onDispose cleans up.
  *
  *  2. DON'T FORGET: unbindAll() - Always unbind previous use cases
  *     before rebinding with new selector.
@@ -46,6 +48,8 @@ fun CameraSwitchingPreview() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    val scope = rememberCoroutineScope()
+
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
@@ -57,19 +61,25 @@ fun CameraSwitchingPreview() {
     else
         CameraSelector.DEFAULT_BACK_CAMERA
 
-    // We need to store preview in remember so it persists across recompositions
-    val preview = remember {
-        Preview.Builder().build().apply {
+    DisposableEffect(selector) {
+        var cameraProvider: ProcessCameraProvider? = null
+        val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequests.value = req }
         }
-    }
 
-    LaunchedEffect(selector) {
-        val cameraProvider = ProcessCameraProvider.awaitInstance(context)
-        cameraProvider.unbindAll()
-        cameraProvider.bindToLifecycle(
-            lifecycleOwner, selector, preview
-        )
+        val job = scope.launch {
+            cameraProvider = ProcessCameraProvider.awaitInstance(context)
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner, selector, preview
+            )
+        }
+
+        onDispose {
+            job.cancel()
+            cameraProvider?.unbind(preview)
+            preview.surfaceProvider = null
+        }
     }
 
     Box(Modifier.fillMaxSize()) {

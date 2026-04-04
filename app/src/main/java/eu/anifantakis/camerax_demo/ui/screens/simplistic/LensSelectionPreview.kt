@@ -20,10 +20,12 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +38,7 @@ import eu.anifantakis.camerax_demo.ui.screens.CameraLensInfo
 import eu.anifantakis.camerax_demo.ui.screens.buildCameraSelectorForId
 import eu.anifantakis.camerax_demo.ui.screens.enumerateCameraLenses
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * NEW WAY: Physical Lens Selection with CameraXViewfinder
@@ -65,6 +68,8 @@ fun LensSelectionPreview() {
     var lenses by remember { mutableStateOf<List<CameraLensInfo>>(emptyList()) }
     var selectedLens by remember { mutableStateOf<CameraLensInfo?>(null) }
 
+    val scope = rememberCoroutineScope()
+
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
@@ -80,18 +85,28 @@ fun LensSelectionPreview() {
     }
 
     // Rebind camera when selected lens changes
-    LaunchedEffect(selectedLens) {
-        val lens = selectedLens ?: return@LaunchedEffect
-        val cameraProvider = ProcessCameraProvider.awaitInstance(context)
-
-        val cameraSelector = buildCameraSelectorForId(lens.cameraId)
+    DisposableEffect(selectedLens) {
+        var cameraProvider: ProcessCameraProvider? = null
+        val lens = selectedLens
 
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequests.value = req }
         }
 
-        cameraProvider.unbindAll()
-        cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
+        val job = if (lens != null) {
+            scope.launch {
+                cameraProvider = ProcessCameraProvider.awaitInstance(context)
+                val cameraSelector = buildCameraSelectorForId(lens.cameraId)
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
+            }
+        } else null
+
+        onDispose {
+            job?.cancel()
+            cameraProvider?.unbind(preview)
+            preview.surfaceProvider = null
+        }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {

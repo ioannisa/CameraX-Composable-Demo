@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,7 @@ import androidx.media3.transformer.Transformer
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import java.io.File
 
 /**
@@ -83,13 +85,15 @@ fun Media3Preview() {
     var recording by remember { mutableStateOf<Recording?>(null) }
     var isRecording by remember { mutableStateOf(false) }
 
+    val scope = rememberCoroutineScope()
+
     // Playback state
     var player by remember { mutableStateOf<ExoPlayer?>(null) }
     var outputFile by remember { mutableStateOf<File?>(null) }
 
-    // Bind camera use cases
-    LaunchedEffect(Unit) {
-        val provider = ProcessCameraProvider.awaitInstance(context)
+    // Bind camera use cases + clean up ExoPlayer when leaving
+    DisposableEffect(Unit) {
+        var provider: ProcessCameraProvider? = null
 
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { surfaceRequests.value = it }
@@ -100,20 +104,23 @@ fun Media3Preview() {
             .build()
         val vidCapture = VideoCapture.withOutput(recorder)
 
-        provider.unbindAll()
-        provider.bindToLifecycle(
-            lifecycleOwner,
-            CameraSelector.DEFAULT_BACK_CAMERA,
-            preview,
-            vidCapture
-        )
+        val job = scope.launch {
+            provider = ProcessCameraProvider.awaitInstance(context)
+            provider.unbindAll()
+            provider.bindToLifecycle(
+                lifecycleOwner,
+                CameraSelector.DEFAULT_BACK_CAMERA,
+                preview,
+                vidCapture
+            )
 
-        videoCapture = vidCapture
-    }
+            videoCapture = vidCapture
+        }
 
-    // Clean up ExoPlayer when leaving
-    DisposableEffect(Unit) {
         onDispose {
+            job.cancel()
+            provider?.unbindAll()
+            preview.surfaceProvider = null
             player?.release()
         }
     }

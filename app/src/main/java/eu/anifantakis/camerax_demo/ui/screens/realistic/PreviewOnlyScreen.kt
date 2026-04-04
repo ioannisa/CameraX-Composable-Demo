@@ -13,7 +13,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -49,7 +49,10 @@ fun PreviewOnlyScreen() {
         if (useFront) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
 
     // (Re)bind the Preview use case whenever the lens changes.
-    LaunchedEffect(selector) { vm.bindPreview(lifecycleOwner, selector) }
+    DisposableEffect(selector) {
+        vm.bindPreview(lifecycleOwner, selector)
+        onDispose { vm.unbindCamera() }
+    }
 
     // Implementation mode toggle (EXTERNAL vs EMBEDDED). Optional; for learning/comparison.
     var useEmbedded by rememberSaveable { mutableStateOf(false) }

@@ -24,11 +24,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * NEW WAY: Manual Exposure with Camera2Interop
@@ -74,6 +76,8 @@ fun ManualExposurePreview() {
     var isoRange by remember { mutableStateOf<Range<Int>?>(null) }
     var exposureTimeRange by remember { mutableStateOf<Range<Long>?>(null) }
 
+    val scope = rememberCoroutineScope()
+
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
@@ -101,8 +105,8 @@ fun ManualExposurePreview() {
         }
     } ?: "..."
 
-    LaunchedEffect(isoValue, shutterValue) {
-        val cameraProvider = ProcessCameraProvider.awaitInstance(context)
+    DisposableEffect(isoValue, shutterValue) {
+        var cameraProvider: ProcessCameraProvider? = null
 
         // Build Preview with Camera2Interop for manual exposure
         val previewBuilder = Preview.Builder()
@@ -136,27 +140,38 @@ fun ManualExposurePreview() {
             setSurfaceProvider { req -> surfaceRequests.value = req }
         }
 
-        cameraProvider.unbindAll()
-        val boundCamera = cameraProvider.bindToLifecycle(
-            lifecycleOwner,
-            CameraSelector.DEFAULT_BACK_CAMERA,
-            preview
-        )
+        val job = scope.launch {
+            cameraProvider = ProcessCameraProvider.awaitInstance(context)
+            cameraProvider.unbindAll()
+            val boundCamera = cameraProvider.bindToLifecycle(
+                lifecycleOwner,
+                CameraSelector.DEFAULT_BACK_CAMERA,
+                preview
+            )
 
-        // Get camera characteristics to determine valid ranges
-        val camera2Info = Camera2CameraInfo.from(boundCamera.cameraInfo)
-        val characteristics = camera2Info.getCameraCharacteristic(
-            CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE
-        )
-        val exposureRange = camera2Info.getCameraCharacteristic(
-            CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE
-        )
+            // Get camera characteristics to determine valid ranges
+            boundCamera?.let { cam ->
+                val camera2Info = Camera2CameraInfo.from(cam.cameraInfo)
+                val characteristics = camera2Info.getCameraCharacteristic(
+                    CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE
+                )
+                val exposureRange = camera2Info.getCameraCharacteristic(
+                    CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE
+                )
 
-        if (isoRange == null) {
-            isoRange = characteristics
+                if (isoRange == null) {
+                    isoRange = characteristics
+                }
+                if (exposureTimeRange == null) {
+                    exposureTimeRange = exposureRange
+                }
+            }
         }
-        if (exposureTimeRange == null) {
-            exposureTimeRange = exposureRange
+
+        onDispose {
+            job.cancel()
+            cameraProvider?.unbind(preview)
+            preview.surfaceProvider = null
         }
     }
 

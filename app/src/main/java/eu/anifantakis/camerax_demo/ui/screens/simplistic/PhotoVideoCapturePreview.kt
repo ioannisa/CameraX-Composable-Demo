@@ -27,10 +27,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +41,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Photo & Video Capture - Simplistic Example
@@ -63,6 +65,8 @@ fun PhotoVideoCapturePreview() {
     val lifecycleOwner = LocalLifecycleOwner.current
     val mainExecutor = ContextCompat.getMainExecutor(context)
 
+    val scope = rememberCoroutineScope()
+
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
@@ -73,8 +77,8 @@ fun PhotoVideoCapturePreview() {
     var recording by remember { mutableStateOf<Recording?>(null) }
 
     // Binding Code - All use cases bound together
-    LaunchedEffect(Unit) {
-        val provider = ProcessCameraProvider.awaitInstance(context)
+    DisposableEffect(Unit) {
+        var provider: ProcessCameraProvider? = null
 
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { surfaceRequests.value = it }
@@ -89,19 +93,28 @@ fun PhotoVideoCapturePreview() {
             .build()
         val vidCapture = VideoCapture.withOutput(recorder)
 
-        provider.unbindAll()
+        val job = scope.launch {
+            provider = ProcessCameraProvider.awaitInstance(context)
+            provider.unbindAll()
 
-        // All share the same camera session
-        camera = provider.bindToLifecycle(
-            lifecycleOwner,
-            CameraSelector.DEFAULT_BACK_CAMERA,
-            preview,
-            imgCapture,
-            vidCapture
-        )
+            // All share the same camera session
+            camera = provider.bindToLifecycle(
+                lifecycleOwner,
+                CameraSelector.DEFAULT_BACK_CAMERA,
+                preview,
+                imgCapture,
+                vidCapture
+            )
 
-        imageCapture = imgCapture
-        videoCapture = vidCapture
+            imageCapture = imgCapture
+            videoCapture = vidCapture
+        }
+
+        onDispose {
+            job.cancel()
+            provider?.unbindAll()
+            preview.surfaceProvider = null
+        }
     }
 
     Box(Modifier.fillMaxSize()) {
