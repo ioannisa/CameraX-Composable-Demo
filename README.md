@@ -3,9 +3,9 @@
 ### No more `AndroidView`. No more `PreviewView`. Just pure Compose.
 
 [![Android](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.0-blue.svg)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.20-blue.svg)](https://kotlinlang.org)
 [![CameraX](https://img.shields.io/badge/CameraX-1.6.0-orange.svg)](https://developer.android.com/jetpack/androidx/releases/camera)
-[![Compose](https://img.shields.io/badge/Jetpack%20Compose-2026.01-blueviolet.svg)](https://developer.android.com/jetpack/compose)
+[![Compose](https://img.shields.io/badge/Jetpack%20Compose-2026.03-blueviolet.svg)](https://developer.android.com/jetpack/compose)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ---
@@ -50,7 +50,7 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 | Category | What You'll Learn |
 |----------|-------------------|
 | **Basic Preview** | The new `SurfaceRequest` → `StateFlow` → `CameraXViewfinder` pattern |
-| **Camera Switching** | `rememberSaveable` + `LaunchedEffect(selector)` for front/back toggle |
+| **Camera Switching** | `rememberSaveable` + `DisposableEffect(selector)` for front/back toggle |
 | **Tap-to-Focus** | `MutableCoordinateTransformer` — no more coordinate math nightmares |
 | **Pinch-to-Zoom** | Standard Compose gestures with `detectTransformGestures` |
 | **Photo & Video** | Binding `Preview` + `ImageCapture` + `VideoCapture` together |
@@ -66,6 +66,7 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 | **Camera2Interop** | Manual ISO & shutter speed — extending CameraX with Camera2 parameters |
 | **Permissions** | Declarative `PermissionGate` inside the Compose tree |
 | **ViewModel Architecture** | Production-ready patterns with proper state management |
+| **Anti-Pattern Demo** | LaunchedEffect toggle crash vs DisposableEffect fix — see it break live |
 
 ---
 
@@ -73,7 +74,8 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 
 ```
 ├── legacy/                  # THE OLD WAY: AndroidView + PreviewView
-│   ├── LegacyBasicPreview          → AndroidView wrapping PreviewView
+│   ├── LegacyBasicPreview          → AndroidView wrapping PreviewView (no cleanup)
+│   ├── LegacyBasicPreviewDisposable → AndroidView with DisposableEffect cleanup
 │   ├── LegacyCameraSwitching       → DisposableEffect coordination
 │   ├── LegacyTapToFocus            → View-based touch handling (ProcessCameraProvider)
 │   ├── LegacyControllerPreview     → LifecycleCameraController (built-in gestures)
@@ -89,8 +91,9 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 │   └── LegacySessionConfigPreview  → SessionConfig (no unbindAll)
 │
 ├── simplistic/              # THE NEW WAY: Pure Compose
-│   ├── BasicCameraPreview       → CameraXViewfinder + StateFlow
-│   ├── CameraSwitchingPreview   → LaunchedEffect(selector)
+│   ├── BasicCameraPreviewDisposable → CameraXViewfinder + DisposableEffect (best practice)
+│   ├── BasicCameraPreviewLaunchedEffect → LaunchedEffect anti-pattern (for comparison)
+│   ├── CameraSwitchingPreview   → DisposableEffect(selector)
 │   ├── TapToFocusPreview        → MutableCoordinateTransformer
 │   ├── PhotoVideoCapturePreview → Multi-use-case binding
 │   ├── AdaptivePreview          → Smooth Compose animations
@@ -102,7 +105,8 @@ Announced at **Google I/O 2025** and now **stable**, the new `CameraXViewfinder`
 │   ├── LensSelectionPreview     → Physical camera enumeration
 │   ├── Media3Preview            → CameraX + Media3 pipeline
 │   ├── SessionConfigPreview     → SessionConfig (no unbindAll)
-│   └── FullCameraPreview        → Combined switching + photo + video
+│   ├── FullCameraPreview        → Combined switching + photo + video
+│   └── AntiPatternToggleDemo    → LaunchedEffect crash demo vs DisposableEffect fix
 │
 ├── mlkit/                   # Shared ML Kit utilities
 │   ├── MlKitAnalyzers           → Face & barcode detector wrappers
@@ -146,15 +150,25 @@ CameraX now follows the same unidirectional data flow you use everywhere else:
 ```kotlin
 @Composable
 fun CameraPreview() {
+    val scope = rememberCoroutineScope()
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        val cameraProvider = ProcessCameraProvider.awaitInstance(context)
+    DisposableEffect(Unit) {
+        var cameraProvider: ProcessCameraProvider? = null
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequests.value = req }
         }
-        cameraProvider.bindToLifecycle(lifecycleOwner, selector, preview)
+        val job = scope.launch {
+            cameraProvider = ProcessCameraProvider.awaitInstance(context)
+            cameraProvider?.unbindAll()
+            cameraProvider?.bindToLifecycle(lifecycleOwner, selector, preview)
+        }
+        onDispose {
+            job.cancel()
+            cameraProvider?.unbind(preview)
+            preview.setSurfaceProvider(null)
+        }
     }
 
     surfaceRequest?.let {
@@ -208,7 +222,7 @@ Works in portrait. Works in landscape. Works on tablets. Works on foldables. Wor
 
 ```kotlin
 // build.gradle.kts
-val cameraxVersion = "1.6.0-rc01"
+val cameraxVersion = "1.6.0"
 
 dependencies {
     implementation("androidx.camera:camera-core:$cameraxVersion")
@@ -220,7 +234,7 @@ dependencies {
     implementation("androidx.camera:camera-mlkit-vision:$cameraxVersion") // ML Kit bridge
 
     // Media3 (video editing + playback)
-    val media3Version = "1.9.2"
+    val media3Version = "1.10.0"
     implementation("androidx.media3:media3-exoplayer:$media3Version")
     implementation("androidx.media3:media3-transformer:$media3Version")
     implementation("androidx.media3:media3-effect:$media3Version")
@@ -410,9 +424,9 @@ The demo includes `ManualExposurePreview` in both `legacy/` and `simplistic/` pa
 |-------------|---------|
 | Min SDK | 26 |
 | Target SDK | 36 |
-| Kotlin | 2.3.0 |
-| Compose BOM | 2026.01.00 |
-| CameraX | 1.5.3 |
+| Kotlin | 2.3.20 |
+| Compose BOM | 2026.03.01 |
+| CameraX | 1.6.0 |
 
 ---
 
@@ -437,7 +451,7 @@ Staff Android Engineer @ novibet
 ## License
 
 ```
-Copyright 2025 Ioannis Anifantakis
+Copyright 2025-2026 Ioannis Anifantakis
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
