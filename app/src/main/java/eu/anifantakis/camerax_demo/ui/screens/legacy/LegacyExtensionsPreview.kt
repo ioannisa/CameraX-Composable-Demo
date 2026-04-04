@@ -32,6 +32,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,7 +85,7 @@ fun LegacyExtensionsPreview() {
     val lifecycleOwner = LocalLifecycleOwner.current
     val mainExecutor = ContextCompat.getMainExecutor(context)
 
-    var selectedMode by remember { mutableStateOf(LegacyExtensionModeOption.None) }
+    var selectedMode by rememberSaveable { mutableStateOf(LegacyExtensionModeOption.None) }
     var availability by remember { mutableStateOf(mapOf<Int, Boolean>()) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
 

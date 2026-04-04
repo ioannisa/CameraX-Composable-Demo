@@ -72,7 +72,7 @@ fun MlKitPreview() {
     val lifecycleOwner = LocalLifecycleOwner.current
     val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
 
-    var selectedEffect by remember { mutableStateOf(MlKitEffect.FaceDetection) }
+    var selectedEffect by rememberSaveable { mutableStateOf(MlKitEffect.FaceDetection) }
     var useFrontCamera by rememberSaveable { mutableStateOf(false) }
     val cameraSelector =
         if (useFrontCamera) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA

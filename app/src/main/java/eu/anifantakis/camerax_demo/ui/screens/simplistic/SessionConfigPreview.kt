@@ -46,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,7 +93,7 @@ fun SessionConfigPreview() {
     val lifecycleOwner = LocalLifecycleOwner.current
     val mainExecutor = ContextCompat.getMainExecutor(context)
 
-    var selectedMode by remember { mutableStateOf(CaptureMode.Photo) }
+    var selectedMode by rememberSaveable { mutableStateOf(CaptureMode.Photo) }
 
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
@@ -132,7 +133,7 @@ fun SessionConfigPreview() {
 
                     // SessionConfig replaces unbindAll() + bindToLifecycle(preview, imageCapture)
                     // Rebinding implicitly unbinds the previous session. No unbindAll() needed.
-                    val camera = provider?.bindToLifecycle(
+                    val camera = provider.bindToLifecycle(
                         lifecycleOwner,
                         CameraSelector.DEFAULT_BACK_CAMERA,
                         SessionConfig(useCases = listOf(preview, imgCapture))
@@ -140,7 +141,7 @@ fun SessionConfigPreview() {
 
                     imageCapture = imgCapture
                     videoCapture = null
-                    cameraInfo = camera?.cameraInfo
+                    cameraInfo = camera.cameraInfo
                 }
                 CaptureMode.Video -> {
                     val recorder = Recorder.Builder()
@@ -149,7 +150,7 @@ fun SessionConfigPreview() {
                     val vidCapture = VideoCapture.withOutput(recorder)
 
                     // SessionConfig replaces unbindAll() + bindToLifecycle(preview, videoCapture)
-                    val camera = provider?.bindToLifecycle(
+                    val camera = provider.bindToLifecycle(
                         lifecycleOwner,
                         CameraSelector.DEFAULT_BACK_CAMERA,
                         SessionConfig(useCases = listOf(preview, vidCapture))
@@ -157,7 +158,7 @@ fun SessionConfigPreview() {
 
                     imageCapture = null
                     videoCapture = vidCapture
-                    cameraInfo = camera?.cameraInfo
+                    cameraInfo = camera.cameraInfo
                 }
             }
         }

@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,8 +63,8 @@ fun LegacyManualExposurePreview() {
     val lifecycleOwner = LocalLifecycleOwner.current
 
     // Exposure controls
-    var isoValue by remember { mutableFloatStateOf(0.5f) } // Normalized 0-1
-    var shutterValue by remember { mutableFloatStateOf(0.5f) } // Normalized 0-1
+    var isoValue by rememberSaveable { mutableFloatStateOf(0.5f) } // Normalized 0-1
+    var shutterValue by rememberSaveable { mutableFloatStateOf(0.5f) } // Normalized 0-1
 
     // Camera ranges (will be populated from camera characteristics)
     var isoRange by remember { mutableStateOf<Range<Int>?>(null) }

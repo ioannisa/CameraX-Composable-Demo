@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +62,29 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AntiPatternToggleDemo() {
-    var showCamera by remember { mutableStateOf(false) }
+    var showCamera by rememberSaveable { mutableStateOf(false) }
+    var showWarning by rememberSaveable { mutableStateOf(true) }
+
+    if (showWarning) {
+        AlertDialog(
+            onDismissRequest = { showWarning = false },
+            title = { Text("Anti-Pattern Demo") },
+            text = {
+                Text(
+                    "This screen uses LaunchedEffect without cleanup.\n\n" +
+                    "1. The camera indicator light will stay ON even after hiding the camera.\n\n" +
+                    "2. Each toggle-on stacks another Preview use case.\n\n" +
+                    "3. On the 3rd attempt to show the camera, the app will CRASH " +
+                    "because the hardware cannot handle 3 simultaneous Preview surfaces."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showWarning = false }) {
+                    Text("I understand")
+                }
+            }
+        )
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Button(
@@ -123,7 +148,7 @@ private fun BrokenCameraSection() {
 
 @Composable
 fun FixedToggleDemo() {
-    var showCamera by remember { mutableStateOf(false) }
+    var showCamera by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Button(

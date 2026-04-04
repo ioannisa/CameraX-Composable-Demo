@@ -42,6 +42,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,14 +85,13 @@ fun LegacySessionConfigPreview() {
     val lifecycleOwner = LocalLifecycleOwner.current
     val mainExecutor = ContextCompat.getMainExecutor(context)
 
-    var selectedMode by remember { mutableStateOf(LegacyCaptureMode.Photo) }
+    var selectedMode by rememberSaveable { mutableStateOf(LegacyCaptureMode.Photo) }
 
     val previewView = remember { PreviewView(context) }
 
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var videoCapture by remember { mutableStateOf<VideoCapture<Recorder>?>(null) }
     var recording by remember { mutableStateOf<Recording?>(null) }
-    var cameraInfo by remember { mutableStateOf<CameraInfo?>(null) }
 
     // Feature group support results
     var featureSupport by remember { mutableStateOf(mapOf<String, Boolean>()) }
@@ -126,7 +126,6 @@ fun LegacySessionConfigPreview() {
 
                     imageCapture = imgCapture
                     videoCapture = null
-                    cameraInfo = camera.cameraInfo
 
                     // Query feature group support after binding.
                     // isSessionConfigSupported() takes a SessionConfig with the feature set
@@ -148,7 +147,6 @@ fun LegacySessionConfigPreview() {
 
                     imageCapture = null
                     videoCapture = vidCapture
-                    cameraInfo = camera.cameraInfo
 
                     featureSupport = queryFeatureSupport(camera.cameraInfo)
                 }

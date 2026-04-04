@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,11 +81,11 @@ fun LegacyEffectsPreview() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    var selectedEffect by remember { mutableStateOf(LegacyEffectType.None) }
+    var selectedEffect by rememberSaveable { mutableStateOf(LegacyEffectType.None) }
 
     // Toggle between PERFORMANCE (SurfaceView) and COMPATIBLE (TextureView).
     // These are the legacy equivalents of CameraXViewfinder's EXTERNAL / EMBEDDED.
-    var useCompatible by remember { mutableStateOf(false) }
+    var useCompatible by rememberSaveable { mutableStateOf(false) }
 
     // Recreate PreviewView when mode changes — implementationMode must be set before binding.
     val previewView = remember(useCompatible) {
