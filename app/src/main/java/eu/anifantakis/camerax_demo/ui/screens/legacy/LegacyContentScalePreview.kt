@@ -67,7 +67,7 @@ fun LegacyContentScalePreview() {
 
     val previewView = remember { PreviewView(context) }
 
-    DisposableEffect(previewView) {
+    DisposableEffect(lifecycleOwner, previewView) {
         val preview = Preview.Builder().build()
         preview.surfaceProvider = previewView.surfaceProvider
 

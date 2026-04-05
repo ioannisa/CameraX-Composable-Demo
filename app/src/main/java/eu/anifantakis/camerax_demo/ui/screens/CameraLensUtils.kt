@@ -104,7 +104,7 @@ fun enumerateCameraLenses(cameraProvider: ProcessCameraProvider): List<CameraLen
 
         CameraLensInfo(
             cameraId = cameraId,
-            label = "$facingLabel $typeLabel (${String.format("%.1f", focalLength)}mm)",
+            label = "$facingLabel $typeLabel (${String.format(java.util.Locale.US, "%.1f", focalLength)}mm)",
             focalLength = focalLength,
             lensFacing = facing
         )
@@ -189,7 +189,7 @@ fun enumerateZoomLenses(
         return listOf(
             ZoomLensInfo(
                 physicalCameraId = logicalCameraId,
-                label = "1x ${classifyLens(referenceFocalLength)} (${String.format("%.1f", referenceFocalLength)}mm)",
+                label = "1x ${classifyLens(referenceFocalLength)} (${String.format(java.util.Locale.US, "%.1f", referenceFocalLength)}mm)",
                 focalLength = referenceFocalLength,
                 zoomRatio = 1.0f
             )
@@ -202,7 +202,7 @@ fun enumerateZoomLenses(
         return listOf(
             ZoomLensInfo(
                 physicalCameraId = logicalCameraId,
-                label = "1x ${classifyLens(referenceFocalLength)} (${String.format("%.1f", referenceFocalLength)}mm)",
+                label = "1x ${classifyLens(referenceFocalLength)} (${String.format(java.util.Locale.US, "%.1f", referenceFocalLength)}mm)",
                 focalLength = referenceFocalLength,
                 zoomRatio = 1.0f
             )
@@ -230,12 +230,12 @@ fun enumerateZoomLenses(
         val zoomRatio = (focalLength * referenceSensorSize.width) /
                         (referenceFocalLength * sensorSize.width)
 
-        val displayZoom = if (zoomRatio < 1f) "%.1fx".format(zoomRatio)
-                          else "%.0fx".format(zoomRatio)
+        val displayZoom = if (zoomRatio < 1f) String.format(java.util.Locale.US, "%.1fx", zoomRatio)
+                          else String.format(java.util.Locale.US, "%.0fx", zoomRatio)
 
         ZoomLensInfo(
             physicalCameraId = physicalId,
-            label = "$displayZoom ${classifyLens(focalLength)} (${String.format("%.1f", focalLength)}mm)",
+            label = "$displayZoom ${classifyLens(focalLength)} (${String.format(java.util.Locale.US, "%.1f", focalLength)}mm)",
             focalLength = focalLength,
             zoomRatio = zoomRatio
         )

@@ -92,7 +92,7 @@ fun LensSelectionPreview() {
     }
 
     // Rebind camera when selected lens changes
-    DisposableEffect(selectedLens) {
+    DisposableEffect(lifecycleOwner, selectedLens) {
         var cameraProvider: ProcessCameraProvider? = null
         val lens = selectedLens
 
@@ -144,7 +144,7 @@ fun LensSelectionPreview() {
             Text(
                 text = selectedLens?.let { lens ->
                     "Camera ID: ${lens.cameraId}\n" +
-                    "Focal Length: ${String.format("%.1f", lens.focalLength)}mm\n" +
+                    "Focal Length: ${String.format(java.util.Locale.US, "%.1f", lens.focalLength)}mm\n" +
                     "Facing: ${if (lens.lensFacing == android.hardware.camera2.CameraCharacteristics.LENS_FACING_BACK) "Back" else "Front"}"
                 } ?: "Discovering cameras...",
                 style = MaterialTheme.typography.bodySmall,

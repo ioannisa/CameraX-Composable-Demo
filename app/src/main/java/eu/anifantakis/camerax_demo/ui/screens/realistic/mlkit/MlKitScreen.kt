@@ -63,7 +63,7 @@ fun MlKitScreen() {
     val rotation by vm.analysisRotation.collectAsStateWithLifecycle()
 
     // (Re)bind whenever the selected effect or camera changes. Unbind on leave.
-    DisposableEffect(selectedEffect, cameraSelector) {
+    DisposableEffect(lifecycleOwner, selectedEffect, cameraSelector) {
         vm.bindWithEffect(lifecycleOwner, selectedEffect, cameraSelector)
         onDispose { vm.unbindCamera() }
     }

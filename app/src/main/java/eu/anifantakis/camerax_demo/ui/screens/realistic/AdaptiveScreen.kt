@@ -116,7 +116,7 @@ fun AdaptiveScreen(
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
         vm.bindPreview(lifecycleOwner)
         onDispose { vm.unbindCamera() }
     }

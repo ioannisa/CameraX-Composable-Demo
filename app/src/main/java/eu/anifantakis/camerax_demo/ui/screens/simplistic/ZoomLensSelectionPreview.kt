@@ -93,7 +93,7 @@ fun ZoomLensSelectionPreview() {
     }
 
     // Bind to logical camera and apply zoom when lens or facing changes
-    DisposableEffect(isFrontCamera) {
+    DisposableEffect(lifecycleOwner, isFrontCamera) {
         var cameraProvider: ProcessCameraProvider? = null
 
         val preview = Preview.Builder().build().apply {
@@ -173,8 +173,8 @@ fun ZoomLensSelectionPreview() {
             Text(
                 text = selectedLens?.let { lens ->
                     "Physical Camera ID: ${lens.physicalCameraId}\n" +
-                    "Focal Length: ${String.format("%.1f", lens.focalLength)}mm\n" +
-                    "Zoom Ratio: ${String.format("%.1f", lens.zoomRatio)}x\n" +
+                    "Focal Length: ${String.format(java.util.Locale.US, "%.1f", lens.focalLength)}mm\n" +
+                    "Zoom Ratio: ${String.format(java.util.Locale.US, "%.1f", lens.zoomRatio)}x\n" +
                     "Total lenses found: ${zoomLenses.size}"
                 } ?: "Discovering physical sub-cameras...",
                 style = MaterialTheme.typography.bodySmall,

@@ -98,7 +98,7 @@ fun LegacySessionConfigPreview() {
 
     // Rebind camera whenever the selected mode changes
     // SessionConfig replaces the old unbindAll()/rebind pattern.
-    DisposableEffect(selectedMode) {
+    DisposableEffect(lifecycleOwner, selectedMode) {
         // Stop any active recording before switching modes
         recording?.stop()
         recording = null

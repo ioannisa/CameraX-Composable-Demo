@@ -1,6 +1,9 @@
 package eu.anifantakis.camerax_demo.ui.screens.legacy
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
+import eu.anifantakis.camerax_demo.ui.components.Permission
+import eu.anifantakis.camerax_demo.ui.components.PermissionGate
 import android.provider.MediaStore
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -51,6 +54,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
  *
  * Compare with: simplistic/PhotoVideoCapturePreview.kt for the new way
  */
+@SuppressLint("MissingPermission") // guarded by PermissionGate + Permission.RECORD_AUDIO.isGranted()
 @Composable
 fun LegacyPhotoVideoCapturePreview() {
     val context = LocalContext.current
@@ -63,7 +67,7 @@ fun LegacyPhotoVideoCapturePreview() {
     var recording by remember { mutableStateOf<Recording?>(null) }
     var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
         // Build all use cases
         val preview = Preview.Builder().build()
         preview.setSurfaceProvider(previewView.surfaceProvider)
@@ -146,32 +150,35 @@ fun LegacyPhotoVideoCapturePreview() {
                 Text("Take Photo")
             }
 
-            Button(onClick = {
-                val vidCap = videoCapture ?: return@Button
+            PermissionGate(permission = Permission.RECORD_AUDIO) {
+                Button(onClick = {
+                    if (!Permission.RECORD_AUDIO.isGranted(context)) return@Button
+                    val vidCap = videoCapture ?: return@Button
 
-                if (recording != null) {
-                    recording?.stop()
-                    recording = null
-                } else {
-                    val name = "VID_${System.currentTimeMillis()}.mp4"
-                    val contentValues = ContentValues().apply {
-                        put(MediaStore.Video.Media.DISPLAY_NAME, name)
-                    }
-
-                    val outputOptions = MediaStoreOutputOptions.Builder(
-                        context.contentResolver,
-                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                    ).setContentValues(contentValues).build()
-
-                    recording = vidCap.output
-                        .prepareRecording(context, outputOptions)
-                        .withAudioEnabled()
-                        .start(ContextCompat.getMainExecutor(context)) { event ->
-                            // Handle recording events
+                    if (recording != null) {
+                        recording?.stop()
+                        recording = null
+                    } else {
+                        val name = "VID_${System.currentTimeMillis()}.mp4"
+                        val contentValues = ContentValues().apply {
+                            put(MediaStore.Video.Media.DISPLAY_NAME, name)
                         }
+
+                        val outputOptions = MediaStoreOutputOptions.Builder(
+                            context.contentResolver,
+                            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                        ).setContentValues(contentValues).build()
+
+                        recording = vidCap.output
+                            .prepareRecording(context, outputOptions)
+                            .withAudioEnabled()
+                            .start(ContextCompat.getMainExecutor(context)) { event ->
+                                // Handle recording events
+                            }
+                    }
+                }) {
+                    Text(if (recording == null) "Record" else "Stop")
                 }
-            }) {
-                Text(if (recording == null) "Record" else "Stop")
             }
         }
     }

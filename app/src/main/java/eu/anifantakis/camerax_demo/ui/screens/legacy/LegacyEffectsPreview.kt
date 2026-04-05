@@ -97,7 +97,7 @@ fun LegacyEffectsPreview() {
         }
     }
 
-    DisposableEffect(previewView) {
+    DisposableEffect(lifecycleOwner, previewView) {
         val preview = Preview.Builder().build()
         preview.surfaceProvider = previewView.surfaceProvider
 

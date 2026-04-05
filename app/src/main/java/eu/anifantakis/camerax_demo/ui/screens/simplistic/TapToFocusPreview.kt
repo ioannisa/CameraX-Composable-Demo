@@ -67,7 +67,7 @@ fun TapToFocusPreview() {
     // Store camera reference for focus control
     var camera by remember { mutableStateOf<Camera?>(null) }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
         var cameraProvider: ProcessCameraProvider? = null
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequests.value = req }

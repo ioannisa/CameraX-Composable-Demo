@@ -64,7 +64,7 @@ fun LegacyZoomLensSelectionPreview() {
     val previewView = remember { PreviewView(context) }
 
     // Enumerate physical sub-cameras and bind on facing change
-    DisposableEffect(isFrontCamera) {
+    DisposableEffect(lifecycleOwner, isFrontCamera) {
         val preview = Preview.Builder().build()
         preview.surfaceProvider = previewView.surfaceProvider
 
@@ -149,8 +149,8 @@ fun LegacyZoomLensSelectionPreview() {
             Text(
                 text = selectedLens?.let { lens ->
                     "Physical Camera ID: ${lens.physicalCameraId}\n" +
-                    "Focal Length: ${String.format("%.1f", lens.focalLength)}mm\n" +
-                    "Zoom Ratio: ${String.format("%.1f", lens.zoomRatio)}x\n" +
+                    "Focal Length: ${String.format(java.util.Locale.US, "%.1f", lens.focalLength)}mm\n" +
+                    "Zoom Ratio: ${String.format(java.util.Locale.US, "%.1f", lens.zoomRatio)}x\n" +
                     "Total lenses found: ${zoomLenses.size}"
                 } ?: "Discovering physical sub-cameras...",
                 style = MaterialTheme.typography.bodySmall,

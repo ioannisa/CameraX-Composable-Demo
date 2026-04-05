@@ -59,7 +59,7 @@ fun LegacyAdaptivePreview() {
 
     val previewView = remember { PreviewView(context) }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
         val preview = Preview.Builder().build()
         preview.setSurfaceProvider(previewView.surfaceProvider)
 

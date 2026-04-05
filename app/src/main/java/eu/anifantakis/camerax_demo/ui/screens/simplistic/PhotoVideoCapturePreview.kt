@@ -1,6 +1,9 @@
 package eu.anifantakis.camerax_demo.ui.screens.simplistic
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
+import eu.anifantakis.camerax_demo.ui.components.Permission
+import eu.anifantakis.camerax_demo.ui.components.PermissionGate
 import android.os.Build
 import android.provider.MediaStore
 import androidx.camera.compose.CameraXViewfinder
@@ -59,6 +62,7 @@ import kotlinx.coroutines.launch
  *  3. Build VideoCapture with Recorder (quality selector)
  *  4. Bind ALL together in one bindToLifecycle() call
  */
+@SuppressLint("MissingPermission") // guarded by PermissionGate + Permission.RECORD_AUDIO.isGranted()
 @Composable
 fun PhotoVideoCapturePreview() {
     val context = LocalContext.current
@@ -77,7 +81,7 @@ fun PhotoVideoCapturePreview() {
     var recording by remember { mutableStateOf<Recording?>(null) }
 
     // Binding Code - All use cases bound together
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
         var provider: ProcessCameraProvider? = null
 
         val preview = Preview.Builder().build().apply {
@@ -157,42 +161,45 @@ fun PhotoVideoCapturePreview() {
                 Text("Take Photo")
             }
 
-            // Record Video button (simplified - no audio permission handling)
-            Button(onClick = {
-                val vc = videoCapture ?: return@Button
+            // Record Video button — gated on RECORD_AUDIO permission
+            PermissionGate(permission = Permission.RECORD_AUDIO) {
+                Button(onClick = {
+                    if (!Permission.RECORD_AUDIO.isGranted(context)) return@Button
+                    val vc = videoCapture ?: return@Button
 
-                // Stop if already recording
-                recording?.let {
-                    it.stop()
-                    recording = null
-                    return@Button
-                }
-
-                // Start new recording
-                val name = "VID_${System.currentTimeMillis()}.mp4"
-                val values = ContentValues().apply {
-                    put(MediaStore.Video.Media.DISPLAY_NAME, name)
-                    put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        put(MediaStore.Video.Media.RELATIVE_PATH, "DCIM/CameraX")
+                    // Stop if already recording
+                    recording?.let {
+                        it.stop()
+                        recording = null
+                        return@Button
                     }
-                }
 
-                val outputOptions = MediaStoreOutputOptions.Builder(
-                    context.contentResolver,
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                ).setContentValues(values).build()
-
-                recording = vc.output
-                    .prepareRecording(context, outputOptions)
-                    // .withAudioEnabled() // Requires RECORD_AUDIO permission
-                    .start(mainExecutor) { event ->
-                        if (event is VideoRecordEvent.Finalize) {
-                            recording = null
+                    // Start new recording
+                    val name = "VID_${System.currentTimeMillis()}.mp4"
+                    val values = ContentValues().apply {
+                        put(MediaStore.Video.Media.DISPLAY_NAME, name)
+                        put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            put(MediaStore.Video.Media.RELATIVE_PATH, "DCIM/CameraX")
                         }
                     }
-            }) {
-                Text(if (recording == null) "Record" else "Stop")
+
+                    val outputOptions = MediaStoreOutputOptions.Builder(
+                        context.contentResolver,
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    ).setContentValues(values).build()
+
+                    recording = vc.output
+                        .prepareRecording(context, outputOptions)
+                        .withAudioEnabled()
+                        .start(mainExecutor) { event ->
+                            if (event is VideoRecordEvent.Finalize) {
+                                recording = null
+                            }
+                        }
+                }) {
+                    Text(if (recording == null) "Record" else "Stop")
+                }
             }
         }
     }

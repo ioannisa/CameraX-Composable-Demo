@@ -1,7 +1,5 @@
 package eu.anifantakis.camerax_demo.ui.screens.realistic
 
-import android.Manifest
-import android.content.pm.PackageManager
 import androidx.camera.compose.CameraXViewfinder
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import eu.anifantakis.camerax_demo.ui.components.Permission
 import eu.anifantakis.camerax_demo.ui.components.PermissionGate
@@ -40,7 +37,7 @@ fun CaptureScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     // Bind all three use cases for this screen.
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
         vm.bindCapture(lifecycleOwner)
         onDispose { vm.unbindCamera() }
     }
@@ -62,22 +59,10 @@ fun CaptureScreen(
             }
 
             // Ask for mic only when the user initiates recording.
-            // NOTE: Lint cannot infer PermissionGate's guarantee, so we add an explicit
-            // checkSelfPermission here before calling a @RequiresPermission method.
             PermissionGate(permission = Permission.RECORD_AUDIO) {
                 Button(onClick = {
-                    val micGranted = ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.RECORD_AUDIO
-                    ) == PackageManager.PERMISSION_GRANTED
-
-                    if (micGranted) {
-                        vm.toggleRecording()
-                    } else {
-                        // Should not happen because PermissionGate only renders this slot
-                        // when permission is granted — but guarding keeps Lint happy and
-                        // prevents accidental crashes if the state changes.
-                    }
+                    if (!Permission.RECORD_AUDIO.isGranted(context)) return@Button
+                    vm.toggleRecording()
                 }) {
                     Text(if (recording == null) "Record" else "Stop")
                 }

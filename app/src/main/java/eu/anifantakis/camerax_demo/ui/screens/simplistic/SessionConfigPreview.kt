@@ -111,7 +111,7 @@ fun SessionConfigPreview() {
     // Rebind camera whenever the selected mode changes
     // SessionConfig replaces the old unbindAll()/rebind pattern:
     // just bind a new SessionConfig and CameraX handles the transition.
-    DisposableEffect(selectedMode) {
+    DisposableEffect(lifecycleOwner, selectedMode) {
         var provider: ProcessCameraProvider? = null
 
         // Stop any active recording before switching modes

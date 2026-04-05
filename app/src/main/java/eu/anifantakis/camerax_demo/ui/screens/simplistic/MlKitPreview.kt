@@ -94,7 +94,7 @@ fun MlKitPreview() {
     var analysisRotation by remember { mutableIntStateOf(0) }
 
     // Rebind when effect or camera changes
-    DisposableEffect(selectedEffect, cameraSelector) {
+    DisposableEffect(lifecycleOwner, selectedEffect, cameraSelector) {
         var cameraProvider: ProcessCameraProvider? = null
 
         val preview = Preview.Builder().build().apply {

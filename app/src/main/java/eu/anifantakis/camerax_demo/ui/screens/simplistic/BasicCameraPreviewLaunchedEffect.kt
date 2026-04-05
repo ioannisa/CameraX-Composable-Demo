@@ -57,7 +57,7 @@ fun BasicCameraPreviewLaunchedEffect() {
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
     // 2. Coroutine-friendly initialization and wiring of the camera
-    LaunchedEffect(Unit) {
+    LaunchedEffect(lifecycleOwner) {
         val cameraProvider = ProcessCameraProvider.awaitInstance(context)
 
         val preview = Preview.Builder().build().apply {

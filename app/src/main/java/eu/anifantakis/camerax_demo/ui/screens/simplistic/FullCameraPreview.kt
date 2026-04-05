@@ -1,6 +1,9 @@
 package eu.anifantakis.camerax_demo.ui.screens.simplistic
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
+import eu.anifantakis.camerax_demo.ui.components.Permission
+import eu.anifantakis.camerax_demo.ui.components.PermissionGate
 import android.os.Build
 import android.provider.MediaStore
 import androidx.camera.compose.CameraXViewfinder
@@ -73,6 +76,7 @@ import kotlinx.coroutines.launch
  * IMPORTANT: When switching cameras while recording, the recording stops.
  * This is expected behavior - you can't seamlessly switch cameras mid-recording.
  */
+@SuppressLint("MissingPermission") // guarded by PermissionGate + Permission.RECORD_AUDIO.isGranted()
 @Composable
 fun FullCameraPreview() {
     val context = LocalContext.current
@@ -98,7 +102,7 @@ fun FullCameraPreview() {
     var recording by remember { mutableStateOf<Recording?>(null) }
 
     // Rebind all use cases when camera selector changes
-    DisposableEffect(cameraSelector) {
+    DisposableEffect(lifecycleOwner, cameraSelector) {
         var provider: ProcessCameraProvider? = null
 
         // Stop any ongoing recording when switching cameras
@@ -220,55 +224,58 @@ fun FullCameraPreview() {
                 )
             }
 
-            // Record Video button
-            IconButton(
-                onClick = {
-                    val vc = videoCapture ?: return@IconButton
+            // Record Video button — gated on RECORD_AUDIO permission
+            PermissionGate(permission = Permission.RECORD_AUDIO) {
+                IconButton(
+                    onClick = {
+                        if (!Permission.RECORD_AUDIO.isGranted(context)) return@IconButton
+                        val vc = videoCapture ?: return@IconButton
 
-                    // Stop if already recording
-                    recording?.let {
-                        it.stop()
-                        recording = null
-                        return@IconButton
-                    }
-
-                    // Start new recording
-                    val name = "VID_${System.currentTimeMillis()}.mp4"
-                    val values = ContentValues().apply {
-                        put(MediaStore.Video.Media.DISPLAY_NAME, name)
-                        put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            put(MediaStore.Video.Media.RELATIVE_PATH, "DCIM/CameraX")
+                        // Stop if already recording
+                        recording?.let {
+                            it.stop()
+                            recording = null
+                            return@IconButton
                         }
-                    }
 
-                    val outputOptions = MediaStoreOutputOptions.Builder(
-                        context.contentResolver,
-                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                    ).setContentValues(values).build()
-
-                    recording = vc.output
-                        .prepareRecording(context, outputOptions)
-                        // .withAudioEnabled() // Requires RECORD_AUDIO permission
-                        .start(mainExecutor) { event ->
-                            if (event is VideoRecordEvent.Finalize) {
-                                recording = null
+                        // Start new recording
+                        val name = "VID_${System.currentTimeMillis()}.mp4"
+                        val values = ContentValues().apply {
+                            put(MediaStore.Video.Media.DISPLAY_NAME, name)
+                            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                put(MediaStore.Video.Media.RELATIVE_PATH, "DCIM/CameraX")
                             }
                         }
-                },
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (recording != null) Color.Red
-                        else MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
+
+                        val outputOptions = MediaStoreOutputOptions.Builder(
+                            context.contentResolver,
+                            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                        ).setContentValues(values).build()
+
+                        recording = vc.output
+                            .prepareRecording(context, outputOptions)
+                            .withAudioEnabled()
+                            .start(mainExecutor) { event ->
+                                if (event is VideoRecordEvent.Finalize) {
+                                    recording = null
+                                }
+                            }
+                    },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (recording != null) Color.Red
+                            else MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
+                        )
+                ) {
+                    Icon(
+                        imageVector = if (recording != null) Icons.Default.Stop else Icons.Default.Videocam,
+                        contentDescription = if (recording != null) "Stop recording" else "Record video",
+                        tint = if (recording != null) Color.White else MaterialTheme.colorScheme.onSurface
                     )
-            ) {
-                Icon(
-                    imageVector = if (recording != null) Icons.Default.Stop else Icons.Default.Videocam,
-                    contentDescription = if (recording != null) "Stop recording" else "Record video",
-                    tint = if (recording != null) Color.White else MaterialTheme.colorScheme.onSurface
-                )
+                }
             }
         }
     }

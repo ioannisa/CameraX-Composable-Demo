@@ -2,6 +2,7 @@ package eu.anifantakis.camerax_demo.ui.components
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,9 +21,19 @@ import kotlinx.collections.immutable.persistentListOf
  *  - keeps the "ask again" UI colocated with the screen that needs it,
  *  - supports mic-only re-prompts (common for video recording).
  */
-enum class Permission {
-    CAMERA,
-    RECORD_AUDIO
+enum class Permission(val manifest: String) {
+    CAMERA(Manifest.permission.CAMERA),
+    RECORD_AUDIO(Manifest.permission.RECORD_AUDIO);
+
+    /**
+     * Checks whether this permission is currently granted.
+     *
+     * Usable anywhere — ViewModels, plain functions, composables — not just
+     * inside a [PermissionGate]. Satisfies Android lint's MissingPermission
+     * check when called before a @RequiresPermission API.
+     */
+    fun isGranted(context: Context): Boolean =
+        ContextCompat.checkSelfPermission(context, manifest) == PackageManager.PERMISSION_GRANTED
 }
 
 /**

@@ -1,6 +1,9 @@
 package eu.anifantakis.camerax_demo.ui.screens.simplistic
 
+import android.annotation.SuppressLint
 import androidx.annotation.OptIn
+import eu.anifantakis.camerax_demo.ui.components.Permission
+import eu.anifantakis.camerax_demo.ui.components.PermissionGate
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -69,6 +72,7 @@ import java.io.File
  * To add audio: call .withAudioEnabled() on prepareRecording().
  */
 @OptIn(UnstableApi::class)
+@SuppressLint("MissingPermission") // guarded by PermissionGate + Permission.RECORD_AUDIO.isGranted()
 @Composable
 fun Media3Preview() {
     val context = LocalContext.current
@@ -92,7 +96,7 @@ fun Media3Preview() {
     var outputFile by remember { mutableStateOf<File?>(null) }
 
     // Bind camera use cases + clean up ExoPlayer when leaving
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
         var provider: ProcessCameraProvider? = null
 
         val preview = Preview.Builder().build().apply {
@@ -136,44 +140,47 @@ fun Media3Preview() {
                     )
                 }
 
-                Button(
-                    onClick = {
-                        val vc = videoCapture ?: return@Button
+                PermissionGate(permission = Permission.RECORD_AUDIO) {
+                    Button(
+                        onClick = {
+                            if (!Permission.RECORD_AUDIO.isGranted(context)) return@Button
+                            val vc = videoCapture ?: return@Button
 
-                        if (isRecording) {
-                            // Stop recording → triggers Finalize event
-                            recording?.stop()
-                        } else {
-                            // Start recording to cache file
-                            val file = File(
-                                context.cacheDir,
-                                "raw_${System.currentTimeMillis()}.mp4"
-                            )
-                            val fileOutput = FileOutputOptions.Builder(file).build()
+                            if (isRecording) {
+                                // Stop recording → triggers Finalize event
+                                recording?.stop()
+                            } else {
+                                // Start recording to cache file
+                                val file = File(
+                                    context.cacheDir,
+                                    "raw_${System.currentTimeMillis()}.mp4"
+                                )
+                                val fileOutput = FileOutputOptions.Builder(file).build()
 
-                            recording = vc.output
-                                .prepareRecording(context, fileOutput)
-                                // .withAudioEnabled() // Requires RECORD_AUDIO permission
-                                .start(mainExecutor) { event ->
-                                    if (event is VideoRecordEvent.Finalize) {
-                                        recording = null
-                                        isRecording = false
+                                recording = vc.output
+                                    .prepareRecording(context, fileOutput)
+                                    .withAudioEnabled()
+                                    .start(mainExecutor) { event ->
+                                        if (event is VideoRecordEvent.Finalize) {
+                                            recording = null
+                                            isRecording = false
 
-                                        if (!event.hasError()) {
-                                            // Move to processing with the recorded file
-                                            outputFile = file
-                                            screenState = ScreenState.Processing
+                                            if (!event.hasError()) {
+                                                // Move to processing with the recorded file
+                                                outputFile = file
+                                                screenState = ScreenState.Processing
+                                            }
                                         }
                                     }
-                                }
-                            isRecording = true
-                        }
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(24.dp)
-                ) {
-                    Text(if (isRecording) "Stop" else "Record")
+                                isRecording = true
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(24.dp)
+                    ) {
+                        Text(if (isRecording) "Stop" else "Record")
+                    }
                 }
             }
         }

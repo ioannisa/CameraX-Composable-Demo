@@ -61,7 +61,7 @@ fun CameraSwitchingPreview() {
     else
         CameraSelector.DEFAULT_BACK_CAMERA
 
-    DisposableEffect(selector) {
+    DisposableEffect(lifecycleOwner, selector) {
         var cameraProvider: ProcessCameraProvider? = null
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequests.value = req }

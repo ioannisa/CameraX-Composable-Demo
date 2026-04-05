@@ -1,11 +1,10 @@
 package eu.anifantakis.camerax_demo.ui.screens.realistic
 
-import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.ContentValues
 import android.os.Build
 import android.provider.MediaStore
-import androidx.annotation.RequiresPermission
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.FocusMeteringAction
@@ -23,6 +22,7 @@ import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
+import eu.anifantakis.camerax_demo.ui.components.Permission
 import androidx.camera.viewfinder.compose.MutableCoordinateTransformer
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Offset
@@ -266,13 +266,13 @@ class CameraViewModel(app: Application) : AndroidViewModel(app) {
     /**
      * Start/stop video recording to MediaStore.
      *
-     * Assumptions:
-     *  - RECORD_AUDIO has been granted (gated in UI by PermissionGate).
-     *  - If you want "silent" recording when mic is denied, make .withAudioEnabled() conditional.
+     * The UI layer gates this behind a PermissionGate so the isGranted()
+     * check below should always pass — it exists as a runtime safety net.
      */
-    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
+    @SuppressLint("MissingPermission") // guarded by Permission.RECORD_AUDIO.isGranted() below
     fun toggleRecording() {
         val vc = videoCapture.value ?: return
+        if (!Permission.RECORD_AUDIO.isGranted(appContext)) return
 
         // Stop current recording if running.
         recording.value?.let {
@@ -298,7 +298,7 @@ class CameraViewModel(app: Application) : AndroidViewModel(app) {
 
         recording.value = vc.output
             .prepareRecording(appContext, out)
-            .withAudioEnabled() // change to conditional if you want silent-video fallback
+            .withAudioEnabled()
             .start(mainExecutor) { event ->
                 // We only need to clear the handle once finalized; inspect event for errors if needed.
                 if (event is VideoRecordEvent.Finalize) {

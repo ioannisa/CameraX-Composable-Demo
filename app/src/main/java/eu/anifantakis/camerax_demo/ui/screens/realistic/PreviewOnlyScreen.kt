@@ -49,7 +49,7 @@ fun PreviewOnlyScreen() {
         if (useFront) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
 
     // (Re)bind the Preview use case whenever the lens changes.
-    DisposableEffect(selector) {
+    DisposableEffect(lifecycleOwner, selector) {
         vm.bindPreview(lifecycleOwner, selector)
         onDispose { vm.unbindCamera() }
     }

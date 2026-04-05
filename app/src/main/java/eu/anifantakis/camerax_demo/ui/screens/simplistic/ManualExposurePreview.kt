@@ -106,7 +106,7 @@ fun ManualExposurePreview() {
         }
     } ?: "..."
 
-    DisposableEffect(isoValue, shutterValue) {
+    DisposableEffect(lifecycleOwner, isoValue, shutterValue) {
         var cameraProvider: ProcessCameraProvider? = null
 
         // Build Preview with Camera2Interop for manual exposure

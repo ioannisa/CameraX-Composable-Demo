@@ -1,6 +1,8 @@
 package eu.anifantakis.camerax_demo.ui.screens.realistic.media3
 
 import androidx.camera.compose.CameraXViewfinder
+import eu.anifantakis.camerax_demo.ui.components.Permission
+import eu.anifantakis.camerax_demo.ui.components.PermissionGate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,7 +41,7 @@ fun Media3Screen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     // Bind camera when screen appears, unbind when leaving
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
         vm.bindCamera(lifecycleOwner)
         onDispose { vm.unbindCamera() }
     }
@@ -60,13 +62,15 @@ fun Media3Screen(
                     )
                 }
 
-                Button(
-                    onClick = { vm.toggleRecording() },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(24.dp)
-                ) {
-                    Text(if (isRecording) "Stop" else "Record")
+                PermissionGate(permission = Permission.RECORD_AUDIO) {
+                    Button(
+                        onClick = { vm.toggleRecording() },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(24.dp)
+                    ) {
+                        Text(if (isRecording) "Stop" else "Record")
+                    }
                 }
             }
         }

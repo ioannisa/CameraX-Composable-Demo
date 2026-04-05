@@ -177,7 +177,7 @@ private fun FixedCameraSection() {
 
     // CORRECT: DisposableEffect unbinds the Preview when the composable leaves.
     // Next time it enters, the bind starts from a clean state.
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
         var cameraProvider: ProcessCameraProvider? = null
 
         val preview = Preview.Builder().build().apply {

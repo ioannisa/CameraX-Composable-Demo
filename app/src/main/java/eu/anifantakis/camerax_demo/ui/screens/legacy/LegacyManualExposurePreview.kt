@@ -100,7 +100,7 @@ fun LegacyManualExposurePreview() {
     } ?: "..."
 
     // Rebind camera when exposure values change
-    DisposableEffect(isoValue, shutterValue) {
+    DisposableEffect(lifecycleOwner, isoValue, shutterValue) {
         var preview: Preview? = null
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)

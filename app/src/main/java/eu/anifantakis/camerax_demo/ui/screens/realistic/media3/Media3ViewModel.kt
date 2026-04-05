@@ -1,5 +1,6 @@
 package eu.anifantakis.camerax_demo.ui.screens.realistic.media3
 
+import android.annotation.SuppressLint
 import android.app.Application
 import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
@@ -28,6 +29,7 @@ import androidx.media3.transformer.EditedMediaItem
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.Transformer
+import eu.anifantakis.camerax_demo.ui.components.Permission
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
@@ -95,8 +97,10 @@ class Media3ViewModel(app: Application) : AndroidViewModel(app) {
 
     // ── Recording ─────────────────────────────────────────────────
 
+    @SuppressLint("MissingPermission") // guarded by Permission.RECORD_AUDIO.isGranted() below
     fun toggleRecording() {
         val vc = videoCapture ?: return
+        if (!Permission.RECORD_AUDIO.isGranted(appContext)) return
 
         if (isRecording.value) {
             recording?.stop()
@@ -109,7 +113,7 @@ class Media3ViewModel(app: Application) : AndroidViewModel(app) {
 
         recording = vc.output
             .prepareRecording(appContext, fileOutput)
-            // .withAudioEnabled() // Requires RECORD_AUDIO permission
+            .withAudioEnabled()
             .start(mainExecutor) { event ->
                 if (event is VideoRecordEvent.Finalize) {
                     recording = null

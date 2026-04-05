@@ -60,7 +60,7 @@ fun AdaptivePreview() {
     val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
     val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
 
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
         var cameraProvider: ProcessCameraProvider? = null
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequests.value = req }
