@@ -250,6 +250,15 @@ fun LegacyMenuScreen(nav: NavController) {
 
             item {
                 Button(
+                    onClick = { nav.navigate(LegacyRoute.ZoomLensSelection.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Zoom-Based Lens Selection")
+                }
+            }
+
+            item {
+                Button(
                     onClick = { nav.navigate(LegacyRoute.Media3.path) },
                     modifier = Modifier.fillMaxWidth()
                 ) {

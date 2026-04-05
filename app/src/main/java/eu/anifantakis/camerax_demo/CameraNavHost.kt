@@ -54,6 +54,7 @@ import eu.anifantakis.camerax_demo.ui.screens.simplistic.MlKitPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.LensSelectionPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyExtensionsPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyLensSelectionPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyZoomLensSelectionPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyMedia3Preview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacySessionConfigPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.Media3Preview
@@ -62,6 +63,7 @@ import eu.anifantakis.camerax_demo.ui.screens.realistic.media3.Media3Screen
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.AntiPatternToggleDemo
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.BasicCameraPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.FixedToggleDemo
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.ZoomLensSelectionPreview
 
 // Routes for Simplistic examples
 sealed class SimplisticRoute(val path: String) {
@@ -80,6 +82,7 @@ sealed class SimplisticRoute(val path: String) {
     data object Extensions : SimplisticRoute("simplistic_extensions")
     data object LensSelection : SimplisticRoute("simplistic_lens_selection")
     data object Media3 : SimplisticRoute("simplistic_media3")
+    data object ZoomLensSelection : SimplisticRoute("simplistic_zoom_lens_selection")
     data object SessionConfig : SimplisticRoute("simplistic_session_config")
     data object AntiPatternToggle : SimplisticRoute("simplistic_anti_pattern_toggle")
     data object FixedToggle : SimplisticRoute("simplistic_fixed_toggle")
@@ -110,6 +113,7 @@ sealed class LegacyRoute(val path: String) {
     data object ContentScale : LegacyRoute("legacy_content_scale")
     data object Extensions : LegacyRoute("legacy_extensions")
     data object LensSelection : LegacyRoute("legacy_lens_selection")
+    data object ZoomLensSelection : LegacyRoute("legacy_zoom_lens_selection")
     data object Media3 : LegacyRoute("legacy_media3")
     data object SessionConfig : LegacyRoute("legacy_session_config")
     data object Controller : LegacyRoute("legacy_controller")
@@ -175,6 +179,7 @@ private fun LegacyNavHost(modifier: Modifier = Modifier) {
         composable(LegacyRoute.ContentScale.path) { LegacyContentScalePreview() }
         composable(LegacyRoute.Extensions.path) { LegacyExtensionsPreview() }
         composable(LegacyRoute.LensSelection.path) { LegacyLensSelectionPreview() }
+        composable(LegacyRoute.ZoomLensSelection.path) { LegacyZoomLensSelectionPreview() }
         composable(LegacyRoute.Media3.path) { LegacyMedia3Preview() }
         composable(LegacyRoute.SessionConfig.path) { LegacySessionConfigPreview() }
         composable(LegacyRoute.Controller.path) { LegacyControllerPreview() }
@@ -206,6 +211,7 @@ private fun SimplisticNavHost(modifier: Modifier = Modifier) {
         composable(SimplisticRoute.ContentScale.path) { ContentScalePreview() }
         composable(SimplisticRoute.Extensions.path) { ExtensionsPreview() }
         composable(SimplisticRoute.LensSelection.path) { LensSelectionPreview() }
+        composable(SimplisticRoute.ZoomLensSelection.path) { ZoomLensSelectionPreview() }
         composable(SimplisticRoute.Media3.path) { Media3Preview() }
         composable(SimplisticRoute.SessionConfig.path) { SessionConfigPreview() }
         composable(SimplisticRoute.AntiPatternToggle.path) { AntiPatternToggleDemo() }

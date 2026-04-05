@@ -41,12 +41,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * NEW WAY: Physical Lens Selection with CameraXViewfinder
+ * Physical Lens Selection via Independent Camera Binding
  *
- * Demonstrates how to enumerate all physical cameras on the device using
- * Camera2CameraInfo and switch between them. Modern phones expose multiple
- * back-facing cameras (ultrawide, wide, telephoto) that DEFAULT_BACK_CAMERA
- * hides behind a single logical camera.
+ * Demonstrates how to enumerate all independently bindable cameras using
+ * Camera2CameraInfo and switch between them by building per-camera
+ * CameraSelectors.
+ *
+ * IMPORTANT: On virtually all modern Android flagships (Pixel, Samsung Galaxy,
+ * OnePlus, Xiaomi, etc.), this approach typically shows only one back camera
+ * and one front camera. The ultrawide and telephoto sensors are physical
+ * sub-cameras within the logical camera and are NOT independently bindable.
+ *
+ * For multi-lens access on modern flagships, see [ZoomLensSelectionPreview]
+ * which uses zoom-ratio-based switching on the logical camera instead.
  *
  * This screen:
  *  1. Uses enumerateCameraLenses() to discover all cameras + focal lengths
