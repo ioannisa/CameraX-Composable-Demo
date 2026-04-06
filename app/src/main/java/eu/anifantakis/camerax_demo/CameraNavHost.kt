@@ -46,19 +46,23 @@ import eu.anifantakis.camerax_demo.ui.screens.simplistic.TapToFocusPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.PhotoVideoCapturePreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.AdaptivePreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.EffectsPreview
-import eu.anifantakis.camerax_demo.ui.screens.simplistic.ExtensionsPreview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.camerax_1_6_features.ExtensionsPreview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.camerax_1_6_features.FeatureGroupsDemo
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.camerax_1_6_features.HighSpeedVideoDemo
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.FullCameraPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.ManualExposurePreview
 import eu.anifantakis.camerax_demo.ui.screens.realistic.mlkit.MlKitScreen
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.MlKitPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.LensSelectionPreview
-import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyExtensionsPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.camerax_1_6_features.LegacyExtensionsPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.camerax_1_6_features.LegacyFeatureGroupsDemo
+import eu.anifantakis.camerax_demo.ui.screens.legacy.camerax_1_6_features.LegacyHighSpeedVideoDemo
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyLensSelectionPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyZoomLensSelectionPreview
 import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacyMedia3Preview
-import eu.anifantakis.camerax_demo.ui.screens.legacy.LegacySessionConfigPreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.camerax_1_6_features.LegacySessionConfigPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.Media3Preview
-import eu.anifantakis.camerax_demo.ui.screens.simplistic.SessionConfigPreview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.camerax_1_6_features.SessionConfigPreview
 import eu.anifantakis.camerax_demo.ui.screens.realistic.media3.Media3Screen
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.AntiPatternToggleDemo
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.BasicCameraPreview
@@ -84,6 +88,8 @@ sealed class SimplisticRoute(val path: String) {
     data object Media3 : SimplisticRoute("simplistic_media3")
     data object ZoomLensSelection : SimplisticRoute("simplistic_zoom_lens_selection")
     data object SessionConfig : SimplisticRoute("simplistic_session_config")
+    data object FeatureGroups : SimplisticRoute("simplistic_feature_groups")
+    data object HighSpeedVideo : SimplisticRoute("simplistic_high_speed_video")
     data object AntiPatternToggle : SimplisticRoute("simplistic_anti_pattern_toggle")
     data object FixedToggle : SimplisticRoute("simplistic_fixed_toggle")
 }
@@ -116,6 +122,8 @@ sealed class LegacyRoute(val path: String) {
     data object ZoomLensSelection : LegacyRoute("legacy_zoom_lens_selection")
     data object Media3 : LegacyRoute("legacy_media3")
     data object SessionConfig : LegacyRoute("legacy_session_config")
+    data object FeatureGroups : LegacyRoute("legacy_feature_groups")
+    data object HighSpeedVideo : LegacyRoute("legacy_high_speed_video")
     data object Controller : LegacyRoute("legacy_controller")
 }
 
@@ -182,6 +190,8 @@ private fun LegacyNavHost(modifier: Modifier = Modifier) {
         composable(LegacyRoute.ZoomLensSelection.path) { LegacyZoomLensSelectionPreview() }
         composable(LegacyRoute.Media3.path) { LegacyMedia3Preview() }
         composable(LegacyRoute.SessionConfig.path) { LegacySessionConfigPreview() }
+        composable(LegacyRoute.FeatureGroups.path) { LegacyFeatureGroupsDemo() }
+        composable(LegacyRoute.HighSpeedVideo.path) { LegacyHighSpeedVideoDemo() }
         composable(LegacyRoute.Controller.path) { LegacyControllerPreview() }
     }
 }
@@ -214,6 +224,8 @@ private fun SimplisticNavHost(modifier: Modifier = Modifier) {
         composable(SimplisticRoute.ZoomLensSelection.path) { ZoomLensSelectionPreview() }
         composable(SimplisticRoute.Media3.path) { Media3Preview() }
         composable(SimplisticRoute.SessionConfig.path) { SessionConfigPreview() }
+        composable(SimplisticRoute.FeatureGroups.path) { FeatureGroupsDemo() }
+        composable(SimplisticRoute.HighSpeedVideo.path) { HighSpeedVideoDemo() }
         composable(SimplisticRoute.AntiPatternToggle.path) { AntiPatternToggleDemo() }
         composable(SimplisticRoute.FixedToggle.path) { FixedToggleDemo() }
     }

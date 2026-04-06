@@ -166,7 +166,7 @@ fun LegacyMenuScreen(nav: NavController) {
                 }
             }
 
-            // ── Part 2: CameraX 1.5 / 1.6 ────────────────────────────
+            // ── Part 2: CameraX 1.6 Features ──────────────────────
             stickyHeader {
                 Column(
                     modifier = Modifier
@@ -177,12 +177,12 @@ fun LegacyMenuScreen(nav: NavController) {
                 ) {
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                     Text(
-                        "Part 2: CameraX 1.5 / 1.6",
+                        "Part 2: CameraX 1.6 Features",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        "Core platform APIs — identical code in Legacy and Compose.",
+                        "SessionConfig, ExtensionSessionConfig, suspending APIs.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -194,7 +194,34 @@ fun LegacyMenuScreen(nav: NavController) {
                     onClick = { nav.navigate(LegacyRoute.SessionConfig.path) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("SessionConfig (No unbindAll)")
+                    Text("SessionConfig + Feature Groups")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.Extensions.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("ExtensionSessionConfig (1.6)")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.FeatureGroups.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Feature Groups Query")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.HighSpeedVideo.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("High-Speed Video (120/240fps)")
                 }
             }
 
@@ -227,15 +254,6 @@ fun LegacyMenuScreen(nav: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("ML Kit Vision Effects")
-                }
-            }
-
-            item {
-                Button(
-                    onClick = { nav.navigate(LegacyRoute.Extensions.path) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("CameraX Extensions")
                 }
             }
 

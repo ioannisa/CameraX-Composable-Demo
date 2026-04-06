@@ -1,10 +1,9 @@
-package eu.anifantakis.camerax_demo.ui.screens.simplistic
+package eu.anifantakis.camerax_demo.ui.screens.legacy.camerax_1_6_features
 
 import android.content.ContentValues
 import android.os.Build
 import android.provider.MediaStore
 import android.widget.Toast
-import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 
@@ -12,10 +11,8 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.core.SessionConfig
-import androidx.camera.core.SurfaceRequest
 import androidx.camera.core.featuregroup.GroupableFeature
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.lifecycle.awaitInstance
 import androidx.camera.video.GroupableFeatures as VideoFeatures
 import androidx.camera.video.MediaStoreOutputOptions
 import androidx.camera.video.Quality
@@ -24,6 +21,7 @@ import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,11 +39,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,80 +49,69 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 
 /**
- * NEW WAY: SessionConfig demo with CameraXViewfinder
+ * LEGACY: SessionConfig demo with AndroidView + PreviewView
  *
- * Demonstrates SessionConfig — introduced in CameraX 1.5 and stable since 1.6.
- * Replaces manual unbindAll()/rebind cycles. Instead of calling unbindAll()
- * before switching configurations, you simply bind a new SessionConfig and
- * CameraX handles the transition implicitly.
+ * Same SessionConfig logic as the Simplistic version, but uses the OLD pattern:
+ *  - AndroidView wrapping PreviewView (instead of CameraXViewfinder)
+ *  - Callback-based ProcessCameraProvider.getInstance() (instead of awaitInstance)
+ *  - DisposableEffect for lifecycle management (instead of LaunchedEffect)
  *
- * TWO MODES:
- *  - Photo: Preview + ImageCapture
- *  - Video: Preview + VideoCapture
+ * SessionConfig was introduced in CameraX 1.5 and is stable since 1.6. The
+ * binding code is identical across both UI approaches — that's the point.
+ * SessionConfig is a core CameraX API, not a Compose-specific one.
  *
- * Switching modes just binds a new SessionConfig — no unbindAll() needed.
+ * CameraX 1.6 expands feature group constants to include video-specific
+ * features (VIDEO_STABILIZATION, UHD_RECORDING) from the camera-video module.
  *
- * FEATURE GROUPS: After binding, queries CameraInfo.isSessionConfigSupported()
- * to show which hardware-backed feature combinations the device supports.
- * CameraX 1.6 expands the feature group constants to include video-specific
- * features like VIDEO_STABILIZATION and UHD_RECORDING from camera-video.
+ * Compare with: simplistic/SessionConfigPreview.kt for the modern Compose approach.
  *
  * Most emulators report false for all features — real device needed for meaningful results.
  */
 
-private enum class CaptureMode(val label: String) {
+private enum class LegacyCaptureMode(val label: String) {
     Photo("Photo"),
     Video("Video")
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SessionConfigPreview() {
+fun LegacySessionConfigPreview() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val mainExecutor = ContextCompat.getMainExecutor(context)
 
-    var selectedMode by rememberSaveable { mutableStateOf(CaptureMode.Photo) }
+    var selectedMode by rememberSaveable { mutableStateOf(LegacyCaptureMode.Photo) }
 
-    val surfaceRequests = remember { MutableStateFlow<SurfaceRequest?>(null) }
-    val surfaceRequest by surfaceRequests.collectAsStateWithLifecycle()
+    val previewView = remember { PreviewView(context) }
 
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var videoCapture by remember { mutableStateOf<VideoCapture<Recorder>?>(null) }
     var recording by remember { mutableStateOf<Recording?>(null) }
-    val scope = rememberCoroutineScope()
-
-    var cameraInfo by remember { mutableStateOf<CameraInfo?>(null) }
 
     // Feature group support results
     var featureSupport by remember { mutableStateOf(mapOf<String, Boolean>()) }
 
     // Rebind camera whenever the selected mode changes
-    // SessionConfig replaces the old unbindAll()/rebind pattern:
-    // just bind a new SessionConfig and CameraX handles the transition.
+    // SessionConfig replaces the old unbindAll()/rebind pattern.
     DisposableEffect(lifecycleOwner, selectedMode) {
-        var provider: ProcessCameraProvider? = null
-
         // Stop any active recording before switching modes
         recording?.stop()
         recording = null
 
-        val preview = Preview.Builder().build().apply {
-            setSurfaceProvider { req -> surfaceRequests.value = req }
-        }
+        val preview = Preview.Builder().build()
+        preview.surfaceProvider = previewView.surfaceProvider
 
-        val job = scope.launch {
-            provider = ProcessCameraProvider.awaitInstance(context)
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+        cameraProviderFuture.addListener({
+            val provider = cameraProviderFuture.get()
 
             when (selectedMode) {
-                CaptureMode.Photo -> {
+                LegacyCaptureMode.Photo -> {
                     val imgCapture = ImageCapture.Builder()
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                         .build()
@@ -141,9 +126,13 @@ fun SessionConfigPreview() {
 
                     imageCapture = imgCapture
                     videoCapture = null
-                    cameraInfo = camera.cameraInfo
+
+                    // Query feature group support after binding.
+                    // isSessionConfigSupported() takes a SessionConfig with the feature set
+                    // as required, so we build a probe SessionConfig for each feature.
+                    featureSupport = queryFeatureSupport(camera.cameraInfo)
                 }
-                CaptureMode.Video -> {
+                LegacyCaptureMode.Video -> {
                     val recorder = Recorder.Builder()
                         .setQualitySelector(QualitySelector.from(Quality.FHD))
                         .build()
@@ -158,49 +147,15 @@ fun SessionConfigPreview() {
 
                     imageCapture = null
                     videoCapture = vidCapture
-                    cameraInfo = camera.cameraInfo
+
+                    featureSupport = queryFeatureSupport(camera.cameraInfo)
                 }
             }
-        }
+        }, mainExecutor)
 
         onDispose {
-            job.cancel()
-            provider?.unbindAll()
+            ProcessCameraProvider.getInstance(context).get().unbindAll()
             preview.surfaceProvider = null
-        }
-    }
-
-    // Query feature group support after camera is bound.
-    // isSessionConfigSupported() takes a SessionConfig with the feature set as required,
-    // so we build a probe SessionConfig for each feature to test individually.
-    LaunchedEffect(cameraInfo) {
-        val info = cameraInfo ?: return@LaunchedEffect
-
-        // Probe use cases — Preview + ImageCapture is a common baseline
-        val probePreview = Preview.Builder().build()
-        val probeCapture = ImageCapture.Builder().build()
-        val probeUseCases = listOf(probePreview, probeCapture)
-
-        val features = mapOf<String, GroupableFeature>(
-            "HDR (HLG10)" to GroupableFeature.HDR_HLG10,
-            "60 FPS" to GroupableFeature.FPS_60,
-            "Preview Stabilization" to GroupableFeature.PREVIEW_STABILIZATION,
-            "Ultra HDR Images" to GroupableFeature.IMAGE_ULTRA_HDR,
-            // CameraX 1.6: New video feature group constants
-            "Video Stabilization" to VideoFeatures.VIDEO_STABILIZATION,
-            "UHD Recording" to VideoFeatures.UHD_RECORDING,
-        )
-
-        featureSupport = features.mapValues { (_, feature) ->
-            try {
-                val probeConfig = SessionConfig(
-                    useCases = probeUseCases,
-                    requiredFeatureGroup = setOf(feature)
-                )
-                info.isSessionConfigSupported(probeConfig)
-            } catch (_: Exception) {
-                false
-            }
         }
     }
 
@@ -212,7 +167,7 @@ fun SessionConfigPreview() {
                 .padding(horizontal = 8.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CaptureMode.entries.forEach { mode ->
+            LegacyCaptureMode.entries.forEach { mode ->
                 FilterChip(
                     selected = selectedMode == mode,
                     onClick = { selectedMode = mode },
@@ -270,16 +225,14 @@ fun SessionConfigPreview() {
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center
         ) {
-            surfaceRequest?.let {
-                CameraXViewfinder(
-                    surfaceRequest = it,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+            AndroidView(
+                factory = { previewView },
+                modifier = Modifier.fillMaxSize()
+            )
 
             // Capture controls
             when (selectedMode) {
-                CaptureMode.Photo -> {
+                LegacyCaptureMode.Photo -> {
                     Button(
                         onClick = {
                             val capture = imageCapture ?: return@Button
@@ -319,7 +272,7 @@ fun SessionConfigPreview() {
                         Text("Take Photo")
                     }
                 }
-                CaptureMode.Video -> {
+                LegacyCaptureMode.Video -> {
                     Button(
                         onClick = {
                             val vc = videoCapture ?: return@Button
@@ -363,6 +316,34 @@ fun SessionConfigPreview() {
                     }
                 }
             }
+        }
+    }
+}
+
+private fun queryFeatureSupport(info: CameraInfo): Map<String, Boolean> {
+    val probePreview = Preview.Builder().build()
+    val probeCapture = ImageCapture.Builder().build()
+    val probeUseCases = listOf(probePreview, probeCapture)
+
+    val features = mapOf<String, GroupableFeature>(
+        "HDR (HLG10)" to GroupableFeature.HDR_HLG10,
+        "60 FPS" to GroupableFeature.FPS_60,
+        "Preview Stabilization" to GroupableFeature.PREVIEW_STABILIZATION,
+        "Ultra HDR Images" to GroupableFeature.IMAGE_ULTRA_HDR,
+        // CameraX 1.6: New video feature group constants
+        "Video Stabilization" to VideoFeatures.VIDEO_STABILIZATION,
+        "UHD Recording" to VideoFeatures.UHD_RECORDING,
+    )
+
+    return features.mapValues { (_, feature) ->
+        try {
+            val probeConfig = SessionConfig(
+                useCases = probeUseCases,
+                requiredFeatureGroup = setOf(feature)
+            )
+            info.isSessionConfigSupported(probeConfig)
+        } catch (_: Exception) {
+            false
         }
     }
 }

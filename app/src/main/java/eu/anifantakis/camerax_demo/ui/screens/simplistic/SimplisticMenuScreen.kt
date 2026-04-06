@@ -189,12 +189,62 @@ fun SimplisticMenuScreen(nav: NavController) {
                 }
             }
 
+            // ── Part 2: CameraX 1.6 Features ──────────────────────
+            stickyHeader {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    Text(
+                        "Part 2: CameraX 1.6 Features",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        "SessionConfig, ExtensionSessionConfig, suspending APIs.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
             item {
                 Button(
                     onClick = { nav.navigate(SimplisticRoute.SessionConfig.path) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("SessionConfig (No unbindAll)")
+                    Text("SessionConfig + Feature Groups")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(SimplisticRoute.Extensions.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("ExtensionSessionConfig (1.6)")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(SimplisticRoute.FeatureGroups.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Feature Groups Query")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(SimplisticRoute.HighSpeedVideo.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("High-Speed Video (120/240fps)")
                 }
             }
 
@@ -227,15 +277,6 @@ fun SimplisticMenuScreen(nav: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("ML Kit Vision Effects")
-                }
-            }
-
-            item {
-                Button(
-                    onClick = { nav.navigate(SimplisticRoute.Extensions.path) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("CameraX Extensions")
                 }
             }
 

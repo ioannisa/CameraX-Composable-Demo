@@ -1,4 +1,4 @@
-package eu.anifantakis.camerax_demo.ui.screens.simplistic
+package eu.anifantakis.camerax_demo.ui.screens.simplistic.camerax_1_6_features
 
 import android.content.ContentValues
 import android.os.Build
