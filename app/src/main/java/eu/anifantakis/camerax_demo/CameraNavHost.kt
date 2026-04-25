@@ -68,6 +68,16 @@ import eu.anifantakis.camerax_demo.ui.screens.simplistic.AntiPatternToggleDemo
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.BasicCameraPreview
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.FixedToggleDemo
 import eu.anifantakis.camerax_demo.ui.screens.simplistic.ZoomLensSelectionPreview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.usecase.UseCaseCombined
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.usecase.UseCaseImageAnalysis
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.usecase.UseCaseImageCapture
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.usecase.UseCasePreview
+import eu.anifantakis.camerax_demo.ui.screens.simplistic.usecase.UseCaseVideoCapture
+import eu.anifantakis.camerax_demo.ui.screens.legacy.usecase.LegacyUseCaseCombined
+import eu.anifantakis.camerax_demo.ui.screens.legacy.usecase.LegacyUseCaseImageAnalysis
+import eu.anifantakis.camerax_demo.ui.screens.legacy.usecase.LegacyUseCaseImageCapture
+import eu.anifantakis.camerax_demo.ui.screens.legacy.usecase.LegacyUseCasePreview
+import eu.anifantakis.camerax_demo.ui.screens.legacy.usecase.LegacyUseCaseVideoCapture
 
 // Routes for Simplistic examples
 sealed class SimplisticRoute(val path: String) {
@@ -92,6 +102,13 @@ sealed class SimplisticRoute(val path: String) {
     data object HighSpeedVideo : SimplisticRoute("simplistic_high_speed_video")
     data object AntiPatternToggle : SimplisticRoute("simplistic_anti_pattern_toggle")
     data object FixedToggle : SimplisticRoute("simplistic_fixed_toggle")
+
+    // Use case minimal examples
+    data object UseCasePreview : SimplisticRoute("simplistic_usecase_preview")
+    data object UseCaseImageCapture : SimplisticRoute("simplistic_usecase_image_capture")
+    data object UseCaseVideoCapture : SimplisticRoute("simplistic_usecase_video_capture")
+    data object UseCaseImageAnalysis : SimplisticRoute("simplistic_usecase_image_analysis")
+    data object UseCaseCombined : SimplisticRoute("simplistic_usecase_combined")
 }
 
 // Routes for Realistic examples
@@ -125,6 +142,13 @@ sealed class LegacyRoute(val path: String) {
     data object FeatureGroups : LegacyRoute("legacy_feature_groups")
     data object HighSpeedVideo : LegacyRoute("legacy_high_speed_video")
     data object Controller : LegacyRoute("legacy_controller")
+
+    // Use case minimal examples
+    data object UseCasePreview : LegacyRoute("legacy_usecase_preview")
+    data object UseCaseImageCapture : LegacyRoute("legacy_usecase_image_capture")
+    data object UseCaseVideoCapture : LegacyRoute("legacy_usecase_video_capture")
+    data object UseCaseImageAnalysis : LegacyRoute("legacy_usecase_image_analysis")
+    data object UseCaseCombined : LegacyRoute("legacy_usecase_combined")
 }
 
 // Bottom navigation tabs
@@ -193,6 +217,11 @@ private fun LegacyNavHost(modifier: Modifier = Modifier) {
         composable(LegacyRoute.FeatureGroups.path) { LegacyFeatureGroupsDemo() }
         composable(LegacyRoute.HighSpeedVideo.path) { LegacyHighSpeedVideoDemo() }
         composable(LegacyRoute.Controller.path) { LegacyControllerPreview() }
+        composable(LegacyRoute.UseCasePreview.path) { LegacyUseCasePreview() }
+        composable(LegacyRoute.UseCaseImageCapture.path) { LegacyUseCaseImageCapture() }
+        composable(LegacyRoute.UseCaseVideoCapture.path) { LegacyUseCaseVideoCapture() }
+        composable(LegacyRoute.UseCaseImageAnalysis.path) { LegacyUseCaseImageAnalysis() }
+        composable(LegacyRoute.UseCaseCombined.path) { LegacyUseCaseCombined() }
     }
 }
 
@@ -228,6 +257,11 @@ private fun SimplisticNavHost(modifier: Modifier = Modifier) {
         composable(SimplisticRoute.HighSpeedVideo.path) { HighSpeedVideoDemo() }
         composable(SimplisticRoute.AntiPatternToggle.path) { AntiPatternToggleDemo() }
         composable(SimplisticRoute.FixedToggle.path) { FixedToggleDemo() }
+        composable(SimplisticRoute.UseCasePreview.path) { UseCasePreview() }
+        composable(SimplisticRoute.UseCaseImageCapture.path) { UseCaseImageCapture() }
+        composable(SimplisticRoute.UseCaseVideoCapture.path) { UseCaseVideoCapture() }
+        composable(SimplisticRoute.UseCaseImageAnalysis.path) { UseCaseImageAnalysis() }
+        composable(SimplisticRoute.UseCaseCombined.path) { UseCaseCombined() }
     }
 }
 

@@ -62,6 +62,74 @@ fun LegacyMenuScreen(nav: NavController) {
                 )
             }
 
+            // ── Use Cases: minimal one-per-pipeline examples ────────
+            stickyHeader {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    Text(
+                        "Use Cases (minimal examples)",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        "One CameraX use case at a time, then all four combined.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.UseCasePreview.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Preview")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.UseCaseImageCapture.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("ImageCapture")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.UseCaseVideoCapture.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("VideoCapture")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.UseCaseImageAnalysis.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("ImageAnalysis")
+                }
+            }
+
+            item {
+                Button(
+                    onClick = { nav.navigate(LegacyRoute.UseCaseCombined.path) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Combined (all four)")
+                }
+            }
+
             // ── Part 1: camera-compose (legacy counterparts) ────────
             stickyHeader {
                 Column(
